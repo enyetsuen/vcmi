@@ -39,13 +39,16 @@ struct DLL_LINKAGE SimturnsInfo
 	bool allowHumanWithAI = false;
 	/// If set to true, allied players can play simultaneously even after contacting each other
 	bool ignoreAlliedContacts = true;
+	/// If set to true, simultaneous turns never expire and interactions between players are allowed
+	bool allowRealSimultaneousTurns = false;
 
 	bool operator == (const SimturnsInfo & other) const
 	{
 		return requiredTurns == other.requiredTurns &&
 				optionalTurns == other.optionalTurns &&
 				ignoreAlliedContacts == other.ignoreAlliedContacts &&
-				allowHumanWithAI == other.allowHumanWithAI;
+				allowHumanWithAI == other.allowHumanWithAI &&
+				allowRealSimultaneousTurns == other.allowRealSimultaneousTurns;
 	}
 
 	template <typename Handler>
@@ -55,6 +58,10 @@ struct DLL_LINKAGE SimturnsInfo
 		h & optionalTurns;
 		h & allowHumanWithAI;
 		h & ignoreAlliedContacts;
+		if(h.hasFeature(Handler::Version::REAL_SIMULTANEOUS_TURNS))
+			h & allowRealSimultaneousTurns;
+		else
+			allowRealSimultaneousTurns = false;
 	}
 };
 

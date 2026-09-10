@@ -112,6 +112,12 @@ OptionsTabBase::OptionsTabBase(const JsonPath & configPath)
 		GAME->server().setSimturnsInfo(info);
 	});
 
+	addCallback("setRealSimturns", [&](int index){
+		SimturnsInfo info = SEL->getStartInfo()->simturnsInfo;
+		info.allowRealSimultaneousTurns = index;
+		GAME->server().setSimturnsInfo(info);
+	});
+
 	addCallback("setCheatAllowed", [&](int index){
 		bool isMultiplayer = GAME->server().loadMode == ELoadMode::MULTI;
 		Settings entry = persistentStorage.write["startExtraOptions"][isMultiplayer ? "multiPlayer" : "singlePlayer"][isMultiplayer ? "cheatsAllowed" : "cheatsNotAllowed"];
@@ -380,6 +386,15 @@ void OptionsTabBase::recreate(bool campaign)
 
 	if(auto buttonSimturnsAI = widget<CToggleButton>("buttonSimturnsAI"))
 		buttonSimturnsAI->setSelectedSilent(SEL->getStartInfo()->simturnsInfo.allowHumanWithAI);
+
+	if(auto buttonRealSimturns = widget<CToggleButton>("buttonRealSimturns"))
+		buttonRealSimturns->setSelectedSilent(SEL->getStartInfo()->simturnsInfo.allowRealSimultaneousTurns);
+
+	const bool durationControlsEnabled = !SEL->getStartInfo()->simturnsInfo.allowRealSimultaneousTurns;
+	if(auto turnSlider = widget<CSlider>("simturnsDurationMin"))
+		turnSlider->setEnabled(durationControlsEnabled);
+	if(auto turnSlider = widget<CSlider>("simturnsDurationMax"))
+		turnSlider->setEnabled(durationControlsEnabled);
 
 	if(auto buttonTurnTimerAccumulate = widget<CToggleButton>("buttonTurnTimerAccumulate"))
 		buttonTurnTimerAccumulate->setSelectedSilent(SEL->getStartInfo()->turnTimerInfo.accumulatingTurnTimer);

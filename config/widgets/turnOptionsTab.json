@@ -307,6 +307,23 @@
 			"color": "yellow",
 			"text": "vcmi.optionsTab.simturnsAI.hover",
 			"position": {"x": 110, "y": 538}
+		},
+		{
+			"name": "buttonRealSimturns",
+			"position": {"x": 70, "y": 570},
+			"help" : "vcmi.optionsTab.realSimturns",
+			"type": "toggleButton",
+			"image": "lobby/checkbox",
+			"callback" : "setRealSimturns"
+		},
+		{
+			"name": "labelRealSimturns",
+			"type": "label",
+			"font": "small",
+			"alignment": "left",
+			"color": "yellow",
+			"text": "vcmi.optionsTab.realSimturns.hover",
+			"position": {"x": 110, "y": 573}
 		}
 	],
 	

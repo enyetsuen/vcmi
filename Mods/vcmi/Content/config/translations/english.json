@@ -1006,6 +1006,8 @@
 	"vcmi.optionsTab.simturnsMin.help": "Play simultaneously for specified number of days. Contacts between players during this period are blocked.",
 	"vcmi.optionsTab.simturnsMin.hover": "At least for",
 	"vcmi.optionsTab.simturnsTitle": "Simultaneous turns",
+	"vcmi.optionsTab.realSimturns.help": "{Real Simultaneous Turns}\nKeep simultaneous turns active for the entire game and allow players to capture each other's objects or attack each other's heroes. Conflicting actions are resolved by the server in the order they arrive.",
+	"vcmi.optionsTab.realSimturns.hover": "Real Simultaneous Turns",
 	"vcmi.optionsTab.turnOptions.help": "Select turn timer and simultaneous turns options",
 	"vcmi.optionsTab.turnOptions.hover": "Turn Options",
 	"vcmi.optionsTab.turnTime.chess.1": "Chess: 01:00 + 01:00 + 00:00 + 00:00",

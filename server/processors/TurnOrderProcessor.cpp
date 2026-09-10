@@ -192,6 +192,9 @@ bool TurnOrderProcessor::computeCanActSimultaneously(PlayerColor active, PlayerC
 			return false;
 	}
 
+	if (gameHandler->gameInfo().getStartInfo()->simturnsInfo.allowRealSimultaneousTurns)
+		return true;
+
 	int currentDay = gameHandler->gameInfo().getCalendar().getCurrentDay();
 	if (currentDay < simturnsTurnsMinLimit())
 		return true;

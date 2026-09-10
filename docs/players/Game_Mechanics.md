@@ -178,6 +178,7 @@ Following options can be used to configure simultaneous turns:
 - Minimal duration (at least for): this is duration during which simultaneous turns will run unconditionally. Until specified number of days have passed, simultaneous turns will never break and game will not attempt to detect contacts.
 - Maximal duration (at most for): this is duration after which simultaneous turns will end unconditionally, even if players still have not contacted each other. However if contact detection discovers contact between two players, simultaneous turns between them might end before specified duration.
 - Simultaneous turns for AI: If this option is on, AI can act at the same time as human players. Note that AI shares settings for simultaneous turns with human players - if no simultaneous turns have been set up this option has no effect.
+- Real Simultaneous Turns: If this option is on, simultaneous turns remain active for the entire game and player contacts do not block interactions. Players can capture each other's objects and attack each other's heroes. If players attempt conflicting actions, the server processes them in arrival order, so an object collected by one player is no longer available to another.
 
 While simultaneous turns are active, VCMI tracks contacts for each pair of player separately.
 
