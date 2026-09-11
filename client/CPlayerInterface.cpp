@@ -143,6 +143,7 @@ CPlayerInterface::CPlayerInterface(PlayerColor Player):
 	battleInt.reset();
 	castleInt = nullptr;
 	makingTurn = false;
+	turnReady = false;
 	showingDialog = new ConditionalWait();
 	cingconsole = new CInGameConsole();
 	isAutoFightOn = false;
@@ -224,6 +225,7 @@ void CPlayerInterface::playerEndsTurn(PlayerColor player)
 	if (player == playerID)
 	{
 		makingTurn = false;
+		turnReady = false;
 		adventureInt->onPlayerTurnEnded();
 		delayQueuedDialogsUntilInputSettles = false;
 		levelUpChainPendingContinuation = false;
@@ -236,6 +238,16 @@ void CPlayerInterface::playerEndsTurn(PlayerColor player)
 	}
 	else if(GAME->interface() == this)
 		adventureInt->onEnemyTurnEnded(player);
+}
+
+void CPlayerInterface::playerTurnReady(PlayerColor player, bool ready)
+{
+	EVENT_HANDLER_CALLED_BY_CLIENT;
+	if (player == playerID)
+	{
+		turnReady = ready;
+		adventureInt->onPlayerTurnReady(ready);
+	}
 }
 
 void CPlayerInterface::playerStartsTurn(PlayerColor player)
@@ -313,6 +325,7 @@ void CPlayerInterface::yourTurn(QueryID queryID)
 		else
 		{
 			makingTurn = true;
+			turnReady = false;
 			adventureInt->onPlayerTurnStarted(playerID);
 		}
 

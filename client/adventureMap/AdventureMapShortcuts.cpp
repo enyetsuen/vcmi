@@ -297,6 +297,12 @@ void AdventureMapShortcuts::endTurn()
 	if(!GAME->interface()->makingTurn)
 		return;
 
+	if(GAME->interface()->turnReady && GAME->interface()->cb->getStartInfo()->simturnsInfo.allowRealSimultaneousTurns)
+	{
+		owner.hotkeyEndingTurn();
+		return;
+	}
+
 	auto showMoveReminderDialog = [this]()
 	{
 		GAME->interface()->showYesNoDialog(

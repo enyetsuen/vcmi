@@ -53,6 +53,7 @@ public:
 	virtual void visitGiveBonus(GiveBonus & pack) {}
 	virtual void visitChangeObjPos(ChangeObjPos & pack) {}
 	virtual void visitPlayerEndsTurn(PlayerEndsTurn & pack) {};
+	virtual void visitPlayerTurnReady(PlayerTurnReady & pack) {};
 	virtual void visitPlayerEndsGame(PlayerEndsGame & pack) {}
 	virtual void visitRemoveBonus(RemoveBonus & pack) {}
 	virtual void visitSetCommanderProperty(SetCommanderProperty & pack) {}

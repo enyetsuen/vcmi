@@ -53,6 +53,7 @@ public:
 	void visitGiveBonus(GiveBonus & pack) override;
 	void visitChangeObjPos(ChangeObjPos & pack) override;
 	void visitPlayerEndsTurn(PlayerEndsTurn & pack) override;
+	void visitPlayerTurnReady(PlayerTurnReady & pack) override;
 	void visitPlayerEndsGame(PlayerEndsGame & pack) override;
 	void visitRemoveBonus(RemoveBonus & pack) override;
 	void visitRemoveObject(RemoveObject & pack) override;

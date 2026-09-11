@@ -191,6 +191,11 @@ void PlayerEndsTurn::visitTyped(ICPackVisitor & visitor)
 	visitor.visitPlayerEndsTurn(*this);
 }
 
+void PlayerTurnReady::visitTyped(ICPackVisitor & visitor)
+{
+	visitor.visitPlayerTurnReady(*this);
+}
+
 void PlayerEndsGame::visitTyped(ICPackVisitor & visitor)
 {
 	visitor.visitPlayerEndsGame(*this);

@@ -540,6 +540,20 @@ struct DLL_LINKAGE PlayerEndsTurn : public CPackForClient
 	}
 };
 
+struct DLL_LINKAGE PlayerTurnReady : public CPackForClient
+{
+	PlayerColor player;
+	bool ready = false;
+
+	void visitTyped(ICPackVisitor & visitor) override;
+
+	template <typename Handler> void serialize(Handler & h)
+	{
+		h & player;
+		h & ready;
+	}
+};
+
 struct DLL_LINKAGE PlayerEndsGame : public CPackForClient
 {
 	PlayerColor player;

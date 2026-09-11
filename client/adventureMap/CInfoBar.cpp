@@ -294,6 +294,12 @@ void CInfoBar::reset()
 void CInfoBar::showSelection()
 {
 	OBJECT_CONSTRUCTION;
+	if(playerReady && !playersMakingTurn.empty())
+	{
+		showEnemyTurns();
+		return;
+	}
+
 	if(GAME->interface()->localState->getCurrentHero())
 	{
 		showHeroSelection(GAME->interface()->localState->getCurrentHero());
@@ -359,7 +365,8 @@ CInfoBar::CInfoBar(const Rect & position)
 	: CIntObject(LCLICK | SHOW_POPUP | HOVER, position.topLeft()),
 	timerCounter(0),
 	state(EState::EMPTY),
-	listener(settings.listen["gameTweaks"]["infoBarCreatureManagement"])
+	listener(settings.listen["gameTweaks"]["infoBarCreatureManagement"]),
+	playerReady(false)
 {
 	OBJECT_CONSTRUCTION;
 	pos.w = position.w;
@@ -567,9 +574,24 @@ void CInfoBar::showEnemyTurns()
 	redraw();
 }
 
+void CInfoBar::setPlayerReady(bool ready)
+{
+	playerReady = ready;
+	if(ready)
+		showEnemyTurns();
+	else
+		showSelection();
+}
+
 void CInfoBar::showHeroSelection(const CGHeroInstance * hero)
 {
 	OBJECT_CONSTRUCTION;
+	if(playerReady && !playersMakingTurn.empty())
+	{
+		showEnemyTurns();
+		return;
+	}
+
 	if(!hero)
 	{
 		reset();
@@ -599,6 +621,12 @@ void CInfoBar::showHeroSelection(const CGHeroInstance * hero)
 void CInfoBar::showTownSelection(const CGTownInstance * town)
 {
 	OBJECT_CONSTRUCTION;
+	if(playerReady && !playersMakingTurn.empty())
+	{
+		showEnemyTurns();
+		return;
+	}
+
 	if(!town)
 	{
 		reset();

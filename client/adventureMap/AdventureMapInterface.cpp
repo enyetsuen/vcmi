@@ -407,6 +407,12 @@ void AdventureMapInterface::onPlayerTurnEnded()
 	widget->getInfoBar()->showEnemyTurns();
 }
 
+void AdventureMapInterface::onPlayerTurnReady(bool ready)
+{
+	widget->setEndTurnReady(ready);
+	widget->getInfoBar()->setPlayerReady(ready);
+}
+
 EAdventureState AdventureMapInterface::getState() const
 {
 	return shortcuts->getState();
@@ -440,6 +446,8 @@ void AdventureMapInterface::onCurrentPlayerChanged(PlayerColor playerID)
 void AdventureMapInterface::onPlayerTurnStarted(PlayerColor playerID)
 {
 	backgroundDimLevel = settings["adventure"]["backgroundDimLevel"].Integer();
+	widget->setEndTurnReady(false);
+	widget->getInfoBar()->setPlayerReady(false);
 
 	onCurrentPlayerChanged(playerID);
 
@@ -507,9 +515,15 @@ void AdventureMapInterface::hotkeyEndingTurn()
 	if(settings["session"]["spectate"].Bool())
 		return;
 
-	if(!settings["general"]["startTurnAutosave"].Bool())
+	if(!GAME->interface()->turnReady && !settings["general"]["startTurnAutosave"].Bool())
 	{
 		GAME->interface()->performAutosave();
+	}
+
+	if(GAME->interface()->cb->getStartInfo()->simturnsInfo.allowRealSimultaneousTurns)
+	{
+		GAME->interface()->cb->endTurn();
+		return;
 	}
 
 	GAME->interface()->makingTurn = false;

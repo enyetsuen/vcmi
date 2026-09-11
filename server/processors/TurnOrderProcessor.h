@@ -40,6 +40,7 @@ class TurnOrderProcessor : boost::noncopyable
 	std::set<PlayerColor> awaitingPlayers;
 	std::set<PlayerColor> actingPlayers;
 	std::set<PlayerColor> actedPlayers;
+	std::set<PlayerColor> readyPlayers;
 
 	std::optional<int> simturnsMinDurationDays;
 	std::optional<int> simturnsMaxDurationDays;
@@ -72,6 +73,8 @@ class TurnOrderProcessor : boost::noncopyable
 	void doStartNewDay();
 	void doStartPlayerTurn(PlayerColor which);
 	void doEndPlayerTurn(PlayerColor which);
+	bool areAllHumanPlayersReady() const;
+	void commitReadyPlayerTurns();
 
 	bool isPlayerAwaitsTurn(PlayerColor which) const;
 	bool isPlayerAwaitsNewDay(PlayerColor which) const;

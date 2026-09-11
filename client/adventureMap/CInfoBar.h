@@ -160,6 +160,7 @@ private:
 
 	std::queue<std::pair<VisibleComponentInfo::Cache, int>> componentsQueue;
 	std::set<PlayerColor> playersMakingTurn;
+	bool playerReady;
 
 	//private helper for showing components
 	void showComponents(const std::vector<Component> & comps, std::string message, int textH, bool tiny, int timer);
@@ -198,6 +199,7 @@ public:
 	void enemyTurnStarted(PlayerColor color);
 	void enemyTurnEnded(PlayerColor color);
 	void showEnemyTurns();
+	void setPlayerReady(bool ready);
 
 	/// reset to default view - selected object
 	void showSelection();

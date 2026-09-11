@@ -967,6 +967,13 @@ void ApplyClientNetPackVisitor::visitPlayerEndsTurn(PlayerEndsTurn & pack)
 	callAllInterfaces(cl, &IGameEventsReceiver::playerEndsTurn, pack.player);
 }
 
+void ApplyClientNetPackVisitor::visitPlayerTurnReady(PlayerTurnReady & pack)
+{
+	logNetwork->debug("Server marks %s as %s", pack.player.toString(), pack.ready ? "ready" : "not ready");
+
+	callAllInterfaces(cl, &IGameEventsReceiver::playerTurnReady, pack.player, pack.ready);
+}
+
 void ApplyClientNetPackVisitor::visitTurnTimeUpdate(TurnTimeUpdate & pack)
 {
 	logNetwork->debug("Server sets turn timer {turn: %d, base: %d, battle: %d, creature: %d} for %s", pack.turnTimer.turnTimer, pack.turnTimer.baseTimer, pack.turnTimer.battleTimer, pack.turnTimer.unitTimer, pack.player.toString());

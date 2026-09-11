@@ -94,6 +94,7 @@ public: // TODO: make private
 	ConditionalWait * showingDialog; //indicates if dialog box is displayed
 
 	bool makingTurn; //if player is already making his turn
+	bool turnReady; //real-time simultaneous turns: player has checked End Turn
 
 	CCastleInterface * castleInt; //nullptr if castle window isn't opened
 	static std::shared_ptr<BattleInterface> battleInt; //nullptr if no battle
@@ -166,6 +167,7 @@ protected: // Call-ins from server, should not be called directly, but only via 
 	void gameOver(PlayerColor player, const EVictoryLossCheckResult & victoryLossCheckResult) override;
 	void playerStartsTurn(PlayerColor player) override; //called before yourTurn on active interface
 	void playerEndsTurn(PlayerColor player) override;
+	void playerTurnReady(PlayerColor player, bool ready) override;
 	void showWorldViewEx(const std::vector<ObjectPosInfo> & objectPositions, bool showTerrain) override;
 	void setColorScheme(ColorScheme scheme) override;
 	void responseStatistic(StatisticDataSet & statistic) override;

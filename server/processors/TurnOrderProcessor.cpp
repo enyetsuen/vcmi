@@ -287,6 +287,7 @@ void TurnOrderProcessor::doStartPlayerTurn(PlayerColor which)
 
 	actingPlayers.insert(which);
 	awaitingPlayers.erase(which);
+	readyPlayers.erase(which);
 
 	PlayerStartsTurn pst;
 	pst.player = which;
@@ -351,6 +352,42 @@ void TurnOrderProcessor::removePlayer(PlayerColor which)
 	awaitingPlayers.erase(which);
 	actingPlayers.erase(which);
 	actedPlayers.erase(which);
+	readyPlayers.erase(which);
+}
+
+bool TurnOrderProcessor::areAllHumanPlayersReady() const
+{
+	bool hasActingHuman = false;
+	for(auto player : actingPlayers)
+	{
+		const auto * state = gameHandler->gameInfo().getPlayerState(player, false);
+		if(!state || !state->isHuman())
+			continue;
+
+		hasActingHuman = true;
+		if(!readyPlayers.contains(player))
+			return false;
+	}
+
+	return hasActingHuman;
+}
+
+void TurnOrderProcessor::commitReadyPlayerTurns()
+{
+	auto playersToEnd = readyPlayers;
+	readyPlayers.clear();
+
+	for(auto player : playersToEnd)
+	{
+		if(!isPlayerMakingTurn(player) || gameHandler->gameInfo().getPlayerStatus(player) != EPlayerStatus::INGAME)
+			continue;
+
+		gameHandler->onPlayerTurnEnded(player);
+
+		// Ending a turn can eliminate the player and remove it from the turn order.
+		if(gameHandler->gameInfo().getPlayerStatus(player) == EPlayerStatus::INGAME)
+			doEndPlayerTurn(player);
+	}
 }
 
 void TurnOrderProcessor::resumeTurnOrder()
@@ -376,10 +413,32 @@ bool TurnOrderProcessor::onPlayerEndsTurn(PlayerColor which)
 		return false;
 	}
 
-	if(gameHandler->queries->topQuery(which) != nullptr)
+	const bool realSimultaneousTurns = gameHandler->gameInfo().getStartInfo()->simturnsInfo.allowRealSimultaneousTurns;
+	const bool humanPlayer = gameHandler->gameInfo().getPlayerState(which)->isHuman();
+	const bool playerIsReady = readyPlayers.contains(which);
+
+	if(gameHandler->queries->topQuery(which) != nullptr && !(realSimultaneousTurns && humanPlayer && playerIsReady))
 	{
 		gameHandler->complain("Cannot end turn before resolving queries!");
 		return false;
+	}
+
+	if(realSimultaneousTurns && humanPlayer)
+	{
+		if(playerIsReady)
+			readyPlayers.erase(which);
+		else
+			readyPlayers.insert(which);
+
+		PlayerTurnReady ready;
+		ready.player = which;
+		ready.ready = !playerIsReady;
+		gameHandler->sendAndApply(ready);
+
+		if(areAllHumanPlayersReady())
+			commitReadyPlayerTurns();
+
+		return true;
 	}
 
 	gameHandler->onPlayerTurnEnded(which);

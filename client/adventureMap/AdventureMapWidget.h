@@ -17,6 +17,7 @@ class CMinimap;
 class MapView;
 class CInfoBar;
 class IImage;
+class CToggleButton;
 class AdventureMapShortcuts;
 enum class EAdventureState;
 
@@ -36,6 +37,7 @@ class AdventureMapWidget : public InterfaceObjectConfigurable
 	std::shared_ptr<CMinimap> minimap;
 	std::shared_ptr<MapView> mapView;
 	std::shared_ptr<CInfoBar> infoBar;
+	std::shared_ptr<CToggleButton> endTurnButton;
 
 	std::shared_ptr<AdventureMapShortcuts> shortcuts;
 
@@ -80,6 +82,7 @@ public:
 
 	void onMapViewMoved(const Rect & visibleArea, int mapLevel);
 	void updateActiveState();
+	void setEndTurnReady(bool ready);
 };
 
 /// Small helper class that provides ownership for shared_ptr's of child elements

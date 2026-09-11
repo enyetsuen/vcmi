@@ -98,6 +98,7 @@ public:
 	virtual void gameOver(PlayerColor player, const EVictoryLossCheckResult & victoryLossCheckResult) {}; //player lost or won the game
 	virtual void playerStartsTurn(PlayerColor player){};
 	virtual void playerEndsTurn(PlayerColor player){};
+	virtual void playerTurnReady(PlayerColor player, bool ready){};
 
 	virtual void responseStatistic(StatisticDataSet & statistic){};
 

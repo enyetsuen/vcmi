@@ -32,6 +32,7 @@
 #include "../PlayerLocalState.h"
 
 #include "../../lib/GameLibrary.h"
+#include "../../lib/StartInfo.h"
 #include "../../lib/callback/CCallback.h"
 #include "../../lib/constants/StringConstants.h"
 #include "../../lib/mapping/CMapHeader.h"
@@ -175,12 +176,25 @@ std::shared_ptr<CIntObject> AdventureMapWidget::buildMapButton(const JsonNode & 
 		ENGINE->renderHandler().updateGeneratedAssets();
 	}
 
-	auto button = std::make_shared<CButton>(position.topLeft(), image, help, 0, EShortcut::NONE, playerColored);
+	std::shared_ptr<CButton> button;
+	if(input["name"].String() == "buttonEndTurn" && GAME->interface()->cb->getStartInfo()->simturnsInfo.allowRealSimultaneousTurns)
+	{
+		endTurnButton = std::make_shared<CToggleButton>(position.topLeft(), image, help, nullptr, EShortcut::NONE, playerColored);
+		button = endTurnButton;
+	}
+	else
+		button = std::make_shared<CButton>(position.topLeft(), image, help, 0, EShortcut::NONE, playerColored);
 
 	loadButtonBorderColor(button, input["borderColor"]);
 	loadButtonHotkey(button, input["hotkey"]);
 
 	return button;
+}
+
+void AdventureMapWidget::setEndTurnReady(bool ready)
+{
+	if(endTurnButton)
+		endTurnButton->setSelectedSilent(ready);
 }
 
 std::shared_ptr<CIntObject> AdventureMapWidget::buildMapContainer(const JsonNode & input)

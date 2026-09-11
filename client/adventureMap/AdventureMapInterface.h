@@ -144,6 +144,9 @@ public:
 	/// Called by PlayerInterface when the local player ends a simultaneous turn
 	void onPlayerTurnEnded();
 
+	/// Updates the local ready checkbox during real-time simultaneous turns
+	void onPlayerTurnReady(bool ready);
+
 	/// Called by PlayerInterface when local human player starts his turn
 	void onPlayerTurnStarted(PlayerColor playerID);
 
