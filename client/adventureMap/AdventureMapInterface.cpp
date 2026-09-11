@@ -384,13 +384,27 @@ void AdventureMapInterface::onHotseatWaitStarted(PlayerColor playerID)
 
 void AdventureMapInterface::onEnemyTurnStarted(PlayerColor playerID, bool isHuman)
 {
+	widget->getInfoBar()->enemyTurnStarted(playerID);
+
 	if(settings["session"]["spectate"].Bool())
+		return;
+	if(GAME->interface()->makingTurn)
 		return;
 
 	mapAudio->onEnemyTurnStarted();
 	widget->getMinimap()->setAIRadar(!isHuman);
-	widget->getInfoBar()->startEnemyTurn(playerID);
+	widget->getInfoBar()->showEnemyTurns();
 	setState(isHuman ? EAdventureState::MAKING_TURN : EAdventureState::AI_PLAYER_TURN);
+}
+
+void AdventureMapInterface::onEnemyTurnEnded(PlayerColor playerID)
+{
+	widget->getInfoBar()->enemyTurnEnded(playerID);
+}
+
+void AdventureMapInterface::onPlayerTurnEnded()
+{
+	widget->getInfoBar()->showEnemyTurns();
 }
 
 EAdventureState AdventureMapInterface::getState() const

@@ -224,6 +224,7 @@ void CPlayerInterface::playerEndsTurn(PlayerColor player)
 	if (player == playerID)
 	{
 		makingTurn = false;
+		adventureInt->onPlayerTurnEnded();
 		delayQueuedDialogsUntilInputSettles = false;
 		levelUpChainPendingContinuation = false;
 		closeAllDialogs();
@@ -233,6 +234,8 @@ void CPlayerInterface::playerEndsTurn(PlayerColor player)
 						   return dialog.dropOnTurnEnd;
 					   });
 	}
+	else if(GAME->interface() == this)
+		adventureInt->onEnemyTurnEnded(player);
 }
 
 void CPlayerInterface::playerStartsTurn(PlayerColor player)
@@ -251,8 +254,7 @@ void CPlayerInterface::playerStartsTurn(PlayerColor player)
 
 		bool isHuman = cb->getStartInfo()->playerInfos.count(player) && cb->getStartInfo()->playerInfos.at(player).isControlledByHuman();
 
-		if (makingTurn == false)
-			adventureInt->onEnemyTurnStarted(player, isHuman);
+		adventureInt->onEnemyTurnStarted(player, isHuman);
 	}
 }
 

@@ -94,11 +94,11 @@ private:
 
 	class VisibleEnemyTurnInfo : public CVisibleInfo
 	{
-		std::shared_ptr<CAnimImage> banner;
-		std::shared_ptr<CShowableAnim> glass;
-		std::shared_ptr<CShowableAnim> sand;
+		std::shared_ptr<CLabel> title;
+		std::vector<std::shared_ptr<CAnimImage>> flags;
+		std::vector<std::shared_ptr<CLabel>> playerNames;
 	public:
-		VisibleEnemyTurnInfo(PlayerColor player);
+		VisibleEnemyTurnInfo(const std::set<PlayerColor> & players);
 	};
 
 	class VisibleGameStatusInfo : public CVisibleInfo
@@ -159,6 +159,7 @@ private:
 	SettingsListener listener;
 
 	std::queue<std::pair<VisibleComponentInfo::Cache, int>> componentsQueue;
+	std::set<PlayerColor> playersMakingTurn;
 
 	//private helper for showing components
 	void showComponents(const std::vector<Component> & comps, std::string message, int textH, bool tiny, int timer);
@@ -194,7 +195,9 @@ public:
 	void requestPopAll();
 
 	/// print enemy turn progress
-	void startEnemyTurn(PlayerColor color);
+	void enemyTurnStarted(PlayerColor color);
+	void enemyTurnEnded(PlayerColor color);
+	void showEnemyTurns();
 
 	/// reset to default view - selected object
 	void showSelection();
@@ -212,4 +215,3 @@ public:
 	/// event handler for custom listening on game setting change
 	void OnInfoBarCreatureManagementChanged();
 };
-

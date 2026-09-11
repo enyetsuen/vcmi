@@ -30,6 +30,7 @@
 
 #include "../../lib/CConfigHandler.h"
 #include "../../lib/GameLibrary.h"
+#include "../../lib/StartInfo.h"
 #include "../../lib/callback/CCallback.h"
 #include "../../lib/texts/CGeneralTextHandler.h"
 #include "../../lib/mapObjects/CGHeroInstance.h"
@@ -124,13 +125,25 @@ AnimationPath CInfoBar::VisibleDateInfo::getNewDayName()
 	}
 }
 
-CInfoBar::VisibleEnemyTurnInfo::VisibleEnemyTurnInfo(PlayerColor player)
+CInfoBar::VisibleEnemyTurnInfo::VisibleEnemyTurnInfo(const std::set<PlayerColor> & players)
 {
 	OBJECT_CONSTRUCTION;
 	background = std::make_shared<CPicture>(ImagePath::builtin("ADSTATNX"));
-	banner = std::make_shared<CAnimImage>(AnimationPath::builtin("CREST58"), player.getNum(), 0, 20, 51);
-	sand = std::make_shared<CShowableAnim>(99, 51, AnimationPath::builtin("HOURSAND"), 0, 100); // H3 uses around 100 ms per frame
-	glass = std::make_shared<CShowableAnim>(99, 51, AnimationPath::builtin("HOURGLAS"), CShowableAnim::PLAY_ONCE, 1000); // H3 scales this nicely for AI turn duration, don't have anything like that in vcmi
+	title = std::make_shared<CLabel>(data_width / 2, 12, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, LIBRARY->generaltexth->translate("vcmi.adventureMap.playersStillMoving"));
+
+	int row = 0;
+	for(const PlayerColor player : players)
+	{
+		const int ypos = 31 + row * 18;
+		flags.push_back(std::make_shared<CAnimImage>(AnimationPath::builtin("ITGFLAGS"), player.getNum(), 0, 10, ypos));
+
+		auto playerInfo = GAME->interface()->cb->getStartInfo()->playerInfos.find(player);
+		const std::string playerName = playerInfo != GAME->interface()->cb->getStartInfo()->playerInfos.end()
+			? playerInfo->second.name
+			: player.toString();
+		playerNames.push_back(std::make_shared<CLabel>(35, ypos + 5, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, playerName, data_width - 40));
+		++row;
+	}
 }
 
 CInfoBar::VisibleGameStatusInfo::VisibleGameStatusInfo()
@@ -515,11 +528,33 @@ bool CInfoBar::showingComponents()
 	return state == EState::COMPONENT;
 }
 
-void CInfoBar::startEnemyTurn(PlayerColor color)
+void CInfoBar::enemyTurnStarted(PlayerColor color)
 {
 	OBJECT_CONSTRUCTION;
+	playersMakingTurn.insert(color);
+	if(state == EState::AITURN)
+		showEnemyTurns();
+}
+
+void CInfoBar::enemyTurnEnded(PlayerColor color)
+{
+	OBJECT_CONSTRUCTION;
+	playersMakingTurn.erase(color);
+	if(state == EState::AITURN)
+		showEnemyTurns();
+}
+
+void CInfoBar::showEnemyTurns()
+{
+	OBJECT_CONSTRUCTION;
+	if(playersMakingTurn.empty())
+	{
+		showSelection();
+		return;
+	}
+
 	state = EState::AITURN;
-	visibleInfo = std::make_shared<VisibleEnemyTurnInfo>(color);
+	visibleInfo = std::make_shared<VisibleEnemyTurnInfo>(playersMakingTurn);
 	redraw();
 }
 
@@ -575,4 +610,3 @@ void CInfoBar::showGameStatus()
 	setTimer(3000);
 	redraw();
 }
-

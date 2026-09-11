@@ -138,6 +138,12 @@ public:
 	/// Called by PlayerInterface when AI or remote human player starts his turn
 	void onEnemyTurnStarted(PlayerColor playerID, bool isHuman);
 
+	/// Called by PlayerInterface when AI or remote human player ends his turn
+	void onEnemyTurnEnded(PlayerColor playerID);
+
+	/// Called by PlayerInterface when the local player ends a simultaneous turn
+	void onPlayerTurnEnded();
+
 	/// Called by PlayerInterface when local human player starts his turn
 	void onPlayerTurnStarted(PlayerColor playerID);
 
