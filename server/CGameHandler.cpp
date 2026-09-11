@@ -531,10 +531,9 @@ void CGameHandler::handleReceivedPack(GameConnectionID connection, CPackForServe
 		if(result)
 			logGlobal->trace("Message %s successfully applied!", typeid(pack).name());
 		else
-			complain((boost::format("Got false in applying %s... that request must have been fishy!")
-				% typeid(pack).name()).str());
+			logGlobal->debug("Rejected request %s from player %s", typeid(pack).name(), pack.player.toString());
 
-		sendPackageResponse(true);
+		sendPackageResponse(result);
 	}
 }
 
@@ -1673,22 +1672,15 @@ bool CGameHandler::isPlayerOwns(GameConnectionID connectionID, const CPackForSer
 	return pack->player == gameState().getOwner(id) && hasPlayerAt(gameState().getOwner(id), connectionID);
 }
 
-void CGameHandler::throwNotAllowedAction(GameConnectionID connectionID)
+void CGameHandler::throwNotAllowedAction(GameConnectionID)
 {
-	playerMessages->sendSystemMessage(connectionID, MetaString::createFromTextID("vcmi.server.errors.notAllowed"));
-
 	logNetwork->error("Player is not allowed to perform this action!");
 	throw ExceptionNotAllowedAction();
 }
 
-void CGameHandler::wrongPlayerMessage(GameConnectionID connectionID, const CPackForServer * pack, PlayerColor expectedplayer)
+void CGameHandler::wrongPlayerMessage(GameConnectionID, const CPackForServer * pack, PlayerColor expectedplayer)
 {
-	auto str = MetaString::createFromTextID("vcmi.server.errors.wrongIdentified");
-	str.replaceName(pack->player);
-	str.replaceName(expectedplayer);
 	logNetwork->error("Expected player %s but got player %s!", expectedplayer.toString(), pack->player.toString());
-
-	playerMessages->sendSystemMessage(connectionID, str);
 }
 
 void CGameHandler::throwIfWrongOwner(GameConnectionID connectionID, const CPackForServer * pack, ObjectInstanceID id)
@@ -3612,13 +3604,6 @@ bool CGameHandler::queryReply(QueryID qid, std::optional<int32_t> answer, Player
 
 bool CGameHandler::complain(const std::string &problem)
 {
-#ifndef ENABLE_GOLDMASTER
-	MetaString str;
-	str.appendTextID("vcmi.broadcast.serverProblem");
-	str.appendRawString(": ");
-	str.appendRawString(problem);
-	playerMessages->broadcastSystemMessage(str);
-#endif
 	logGlobal->error(problem);
 	return true;
 }
