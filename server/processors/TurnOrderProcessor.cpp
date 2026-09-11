@@ -69,6 +69,11 @@ std::vector<TurnOrderProcessor::PlayerPair> TurnOrderProcessor::computeContactSt
 void TurnOrderProcessor::updateAndNotifyContactStatus()
 {
 	auto newBlockedContacts = computeContactStatus();
+	if (gameHandler->gameInfo().getStartInfo()->simturnsInfo.allowRealSimultaneousTurns)
+	{
+		blockedContacts = std::move(newBlockedContacts);
+		return;
+	}
 
 	if (newBlockedContacts.empty())
 	{
