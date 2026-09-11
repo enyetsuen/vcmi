@@ -115,6 +115,7 @@ struct ClientSession
 	std::shared_ptr<CGameState> gamestate;
 	std::map<PlayerColor, std::shared_ptr<CGameInterface>> playerint;
 	std::map<PlayerColor, std::shared_ptr<CBattleGameInterface>> battleints;
+	std::map<BattleID, std::shared_ptr<CBattleGameInterface>> neutralBattleInts;
 	std::map<PlayerColor, std::vector<std::shared_ptr<IBattleEventsReceiver>>> additionalBattleInts;
 	std::map<PlayerColor, std::shared_ptr<CBattleCallback>> battleCallbacks;
 	std::map<PlayerColor, std::shared_ptr<CPlayerEnvironment>> playerEnvironments;
@@ -155,6 +156,7 @@ public:
 	std::string aiNameForPlayer(bool battleAI, bool alliedToHuman) const;
 	void installNewPlayerInterface(std::shared_ptr<CGameInterface> gameInterface, PlayerColor color, bool battlecb = false);
 	void installNewBattleInterface(std::shared_ptr<CBattleGameInterface> battleInterface, PlayerColor color, bool needCallback = true);
+	std::shared_ptr<CBattleGameInterface> getBattleInterface(PlayerColor color, const BattleID & battleID) const;
 
 	//Set of metrhods that allows adding more interfaces for this player that'll receive game event call-ins.
 	void registerBattleInterface(std::shared_ptr<IBattleEventsReceiver> battleEvents, PlayerColor color);

@@ -70,10 +70,10 @@ bool callInterfaceIfPresent(CClient & cl, PlayerColor player, void (T::*ptr)(Arg
 }
 
 template<typename T, typename ... Args, typename ... Args2>
-void callOnlyThatBattleInterface(CClient & cl, PlayerColor player, void (T::*ptr)(Args...), Args2 && ...args)
+void callOnlyThatBattleInterface(CClient & cl, PlayerColor player, const BattleID & battleID, void (T::*ptr)(Args...), Args2 && ...args)
 {
-	if(vstd::contains(cl.battleints,player))
-		((*cl.battleints[player]).*ptr)(std::forward<Args2>(args)...);
+	if(auto battleInterface = cl.getBattleInterface(player, battleID))
+		((*battleInterface).*ptr)(std::forward<Args2>(args)...);
 
 	if(cl.additionalBattleInts.count(player))
 	{
@@ -108,11 +108,11 @@ void callBattleInterfaceIfPresentForBothSides(CClient & cl, const BattleID & bat
 		return;
 	}
 
-	callOnlyThatBattleInterface(cl, cl.gameState().getBattle(battleID)->getSide(BattleSide::ATTACKER).color, ptr, std::forward<Args2>(args)...);
-	callOnlyThatBattleInterface(cl, cl.gameState().getBattle(battleID)->getSide(BattleSide::DEFENDER).color, ptr, std::forward<Args2>(args)...);
+	callOnlyThatBattleInterface(cl, cl.gameState().getBattle(battleID)->getSide(BattleSide::ATTACKER).color, battleID, ptr, std::forward<Args2>(args)...);
+	callOnlyThatBattleInterface(cl, cl.gameState().getBattle(battleID)->getSide(BattleSide::DEFENDER).color, battleID, ptr, std::forward<Args2>(args)...);
 	if(settings["session"]["spectate"].Bool() && !settings["session"]["spectate-skip-battle"].Bool() && GAME->interface()->battleInt)
 	{
-		callOnlyThatBattleInterface(cl, PlayerColor::SPECTATOR, ptr, std::forward<Args2>(args)...);
+		callOnlyThatBattleInterface(cl, PlayerColor::SPECTATOR, battleID, ptr, std::forward<Args2>(args)...);
 	}
 }
 
@@ -755,11 +755,11 @@ void ApplyClientNetPackVisitor::visitMapObjectSelectDialog(MapObjectSelectDialog
 void ApplyFirstClientNetPackVisitor::visitBattleStart(BattleStart & pack)
 {
 	// Cannot use the usual code because curB is not set yet
-	callOnlyThatBattleInterface(cl, pack.info->getSide(BattleSide::ATTACKER).color, &IBattleEventsReceiver::battleStartBefore, pack.battleID, pack.info->getSideArmy(BattleSide::ATTACKER), pack.info->getSideArmy(BattleSide::DEFENDER),
+	callOnlyThatBattleInterface(cl, pack.info->getSide(BattleSide::ATTACKER).color, pack.battleID, &IBattleEventsReceiver::battleStartBefore, pack.battleID, pack.info->getSideArmy(BattleSide::ATTACKER), pack.info->getSideArmy(BattleSide::DEFENDER),
 		pack.info->tile, pack.info->getSideHero(BattleSide::ATTACKER), pack.info->getSideHero(BattleSide::DEFENDER));
-	callOnlyThatBattleInterface(cl, pack.info->getSide(BattleSide::DEFENDER).color, &IBattleEventsReceiver::battleStartBefore, pack.battleID, pack.info->getSideArmy(BattleSide::ATTACKER), pack.info->getSideArmy(BattleSide::DEFENDER),
+	callOnlyThatBattleInterface(cl, pack.info->getSide(BattleSide::DEFENDER).color, pack.battleID, &IBattleEventsReceiver::battleStartBefore, pack.battleID, pack.info->getSideArmy(BattleSide::ATTACKER), pack.info->getSideArmy(BattleSide::DEFENDER),
 		pack.info->tile, pack.info->getSideHero(BattleSide::ATTACKER), pack.info->getSideHero(BattleSide::DEFENDER));
-	callOnlyThatBattleInterface(cl, PlayerColor::SPECTATOR, &IBattleEventsReceiver::battleStartBefore, pack.battleID, pack.info->getSideArmy(BattleSide::ATTACKER), pack.info->getSideArmy(BattleSide::DEFENDER),
+	callOnlyThatBattleInterface(cl, PlayerColor::SPECTATOR, pack.battleID, &IBattleEventsReceiver::battleStartBefore, pack.battleID, pack.info->getSideArmy(BattleSide::ATTACKER), pack.info->getSideArmy(BattleSide::DEFENDER),
 		pack.info->tile, pack.info->getSideHero(BattleSide::ATTACKER), pack.info->getSideHero(BattleSide::DEFENDER));
 }
 

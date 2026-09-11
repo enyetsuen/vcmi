@@ -264,7 +264,7 @@ void CClient::initPlayerInterfaces()
 	}
 
 	if(GAME->server().getAllClientPlayers(GAME->server().logicConnection->connectionID).count(PlayerColor::NEUTRAL))
-		installNewBattleInterface(AIFactory::createBattleAI(settings["ai"]["combatNeutralAI"].String()), PlayerColor::NEUTRAL);
+		battleCallbacks[PlayerColor::NEUTRAL] = std::make_shared<CBattleCallback>(PlayerColor::NEUTRAL, this);
 
 	logNetwork->trace("Initialized player interfaces %d ms", GAME->server().th->getDiff());
 }
@@ -337,6 +337,18 @@ void CClient::installNewBattleInterface(std::shared_ptr<CBattleGameInterface> ba
 		battleCallbacks[color] = cbc;
 		battleInterface->initBattleInterface(playerEnvironments.at(color), cbc);
 	}
+}
+
+std::shared_ptr<CBattleGameInterface> CClient::getBattleInterface(PlayerColor color, const BattleID & battleID) const
+{
+	if(color == PlayerColor::NEUTRAL)
+	{
+		auto battleInterface = neutralBattleInts.find(battleID);
+		return battleInterface != neutralBattleInts.end() ? battleInterface->second : nullptr;
+	}
+
+	auto battleInterface = battleints.find(color);
+	return battleInterface != battleints.end() ? battleInterface->second : nullptr;
 }
 
 void CClient::handlePack(CPackForClient & pack)
@@ -424,6 +436,19 @@ void CClient::battleStarted(const BattleID & battleID)
 			battleCb.second->onBattleStarted(info);
 	}
 
+	for(const auto side : { BattleSide::LEFT_SIDE, BattleSide::RIGHT_SIDE })
+	{
+		if(info->getSide(side).color != PlayerColor::NEUTRAL)
+			continue;
+		if(!vstd::contains(playerEnvironments, PlayerColor::NEUTRAL) || !vstd::contains(battleCallbacks, PlayerColor::NEUTRAL))
+			continue;
+
+		auto battleAI = AIFactory::createBattleAI(settings["ai"]["combatNeutralAI"].String());
+		battleAI->initBattleInterface(playerEnvironments.at(PlayerColor::NEUTRAL), battleCallbacks.at(PlayerColor::NEUTRAL));
+		battleAI->battleStart(info->battleID, leftSide.getArmy(), rightSide.getArmy(), info->tile, leftSide.getHero(), rightSide.getHero(), side, info->replayAllowed);
+		neutralBattleInts[battleID] = battleAI;
+	}
+
 	//If quick combat is not, do not prepare interfaces for battleint
 	auto callBattleStart = [&](PlayerColor color, BattleSide side)
 	{
@@ -433,7 +458,6 @@ void CClient::battleStarted(const BattleID & battleID)
 	
 	callBattleStart(leftSide.color, BattleSide::LEFT_SIDE);
 	callBattleStart(rightSide.color, BattleSide::RIGHT_SIDE);
-	callBattleStart(PlayerColor::UNFLAGGABLE, BattleSide::RIGHT_SIDE);
 	if(settings["session"]["spectate"].Bool() && !settings["session"]["spectate-skip-battle"].Bool())
 		callBattleStart(PlayerColor::SPECTATOR, BattleSide::RIGHT_SIDE);
 	
@@ -503,14 +527,15 @@ void CClient::battleFinished(const BattleID & battleID)
 
 	if(settings["session"]["spectate"].Bool() && !settings["session"]["spectate-skip-battle"].Bool())
 		battleCallbacks[PlayerColor::SPECTATOR]->onBattleEnded(battleID);
+
+	neutralBattleInts.erase(battleID);
 }
 
 void CClient::startPlayerBattleAction(const BattleID & battleID, PlayerColor color)
 {
-	if (battleints.count(color) == 0)
+	auto battleint = getBattleInterface(color, battleID);
+	if (!battleint)
 		return; // not our combat in MP
-
-	auto battleint = battleints.at(color);
 	auto activateStack = [&]()
 	{
 		battleint->activeStack(battleID, gameState().getBattle(battleID)->battleGetStackByID(gameState().getBattle(battleID)->activeStack, false));
