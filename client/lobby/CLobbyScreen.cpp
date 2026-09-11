@@ -34,7 +34,6 @@
 #include "../../lib/texts/CGeneralTextHandler.h"
 #include "../../lib/campaign/CampaignHandler.h"
 #include "../../lib/mapping/CMapInfo.h"
-#include "../../lib/networkPacks/PacksForLobby.h"
 #include "../../lib/rmg/CMapGenOptions.h"
 #include "../../lib/GameLibrary.h"
 
@@ -63,15 +62,19 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 		});
 
 		buttonOptions = std::make_shared<CButton>(Point(411, 510), AnimationPath::builtin("GSPBUTT.DEF"), LIBRARY->generaltexth->zelp[46], std::bind(&CLobbyScreen::toggleTab, this, tabOpt), EShortcut::LOBBY_ADDITIONAL_OPTIONS);
-		if(settings["general"]["enableUiEnhancements"].Bool())
+		if(tabTurnOptions)
 		{
-			if(screenType == ESelectionScreen::newGame && !ENGINE->isDemoData())
-				buttonBattleMode = std::make_shared<CButton>(Point(619, 80), AnimationPath::builtin("GSPButton2Arrow"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.battleOnlyMode.help")), [this](){
-					updateAfterStateChange(); // creates tabBattleOnlyMode -> cannot created by init of object because GAME->server().isGuest() isn't valid at that point
-					toggleTab(tabBattleOnlyMode);
-				}, EShortcut::LOBBY_BATTLE_MODE);
-			buttonExtraOptions = std::make_shared<CButton>(Point(619, 510), AnimationPath::builtin("GSPButton2Arrow"), LIBRARY->generaltexth->zelp[46], std::bind(&CLobbyScreen::toggleTab, this, tabExtraOptions), EShortcut::LOBBY_EXTRA_OPTIONS);
+			buttonTurnOptions = std::make_shared<CButton>(Point(619, 485), AnimationPath::builtin("GSPButton2Arrow"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.optionsTab.turnOptions.help")), std::bind(&CLobbyScreen::toggleTab, this, tabTurnOptions), EShortcut::LOBBY_TURN_OPTIONS);
+			buttonTurnOptions->setTextOverlay(LIBRARY->generaltexth->translate("vcmi.optionsTab.turnOptions.hover"), FONT_SMALL, Colors::WHITE);
 		}
+		if(screenType == ESelectionScreen::newGame && !ENGINE->isDemoData())
+		{
+			buttonBattleMode = std::make_shared<CButton>(Point(619, 80), AnimationPath::builtin("GSPButton2Arrow"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.battleOnlyMode.help")), [this](){
+				updateAfterStateChange(); // creates tabBattleOnlyMode -> cannot created by init of object because GAME->server().isGuest() isn't valid at that point
+				toggleTab(tabBattleOnlyMode);
+			}, EShortcut::LOBBY_BATTLE_MODE);
+		}
+		buttonExtraOptions = std::make_shared<CButton>(Point(619, 510), AnimationPath::builtin("GSPButton2Arrow"), LIBRARY->generaltexth->zelp[46], std::bind(&CLobbyScreen::toggleTab, this, tabExtraOptions), EShortcut::LOBBY_EXTRA_OPTIONS);
 	};
 	if(screenType != ESelectionScreen::campaignList && isMultiplayerNetworkLobby() && !ENGINE->isRoeData())
 	{
@@ -155,6 +158,11 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 		blackScreen = std::make_shared<GraphicalPrimitiveCanvas>(Rect(Point(0, 0), pos.dimensions()));
 		blackScreen->addBox(Point(0, 0), pos.dimensions(), Colors::BLACK);
 	}
+
+	// Player starting options are the stable game-creation home view. All
+	// configuration and map-selection tabs temporarily replace this view.
+	if(tabOpt)
+		CSelectionBase::toggleTab(tabOpt);
 
 	onRemoteClientLobbyStateChanged();
 }
@@ -257,20 +265,14 @@ void CLobbyScreen::onRemoteClientLobbyStateChanged()
 
 void CLobbyScreen::toggleTab(std::shared_ptr<CIntObject> tab)
 {
-	if(tab == curTab)
-		GAME->server().sendGuiAction(LobbyGuiAction::NO_TAB);
-	else if(tab == tabOpt)
-		GAME->server().sendGuiAction(LobbyGuiAction::OPEN_OPTIONS);
-	else if(tab == tabSel)
-		GAME->server().sendGuiAction(LobbyGuiAction::OPEN_SCENARIO_LIST);
-	else if(tab == tabRand)
-		GAME->server().sendGuiAction(LobbyGuiAction::OPEN_RANDOM_MAP_OPTIONS);
-	else if(tab == tabTurnOptions)
-		GAME->server().sendGuiAction(LobbyGuiAction::OPEN_TURN_OPTIONS);
-	else if(tab == tabExtraOptions)
-		GAME->server().sendGuiAction(LobbyGuiAction::OPEN_EXTRA_OPTIONS);
-	else if(tab == tabBattleOnlyMode)
-		GAME->server().sendGuiAction(LobbyGuiAction::BATTLE_MODE);
+	// Selecting an open overlay returns to the player options home view. The
+	// home view itself remains open instead of collapsing to an empty backdrop.
+	if(tab == curTab && tabOpt)
+	{
+		if(tab == tabOpt)
+			return;
+		tab = tabOpt;
+	}
 
 	if(tab == tabBattleOnlyMode)
 	{
@@ -355,6 +357,9 @@ void CLobbyScreen::toggleMode(bool host)
 	if (buttonExtraOptions)
 		buttonExtraOptions->setTextOverlay(LIBRARY->generaltexth->translate("vcmi.optionsTab.extraOptions.hover"), FONT_SMALL, buttonColor);
 
+	if(buttonTurnOptions)
+		buttonTurnOptions->setTextOverlay(LIBRARY->generaltexth->translate("vcmi.optionsTab.turnOptions.hover"), FONT_SMALL, buttonColor);
+
 	if(buttonRMG)
 	{
 		buttonRMG->setTextOverlay("  " + LIBRARY->generaltexth->allTexts[740], FONT_SMALL, buttonColor);
@@ -362,6 +367,8 @@ void CLobbyScreen::toggleMode(bool host)
 	}
 	buttonSelect->block(!host);
 	buttonOptions->block(!host);
+	if(buttonTurnOptions)
+		buttonTurnOptions->block(!host);
 
 	if (buttonBattleMode)
 		buttonBattleMode->block(!host);
@@ -443,6 +450,11 @@ void CLobbyScreen::updateAfterStateChange()
 		if (tabExtraOptions)
 			tabExtraOptions->recreate();
 	}
+
+	// Navigation is local UI state. Guests stay on the player options tab so
+	// host configuration screens never interrupt their town or hero selection.
+	if(GAME->server().isGuest() && !GAME->server().battleMode && tabOpt && curTab != tabOpt)
+		toggleTab(tabOpt);
 
 	if(curTab != tabBattleOnlyMode)
 	{

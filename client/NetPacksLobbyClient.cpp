@@ -128,35 +128,10 @@ void ApplyOnLobbyScreenNetPackVisitor::visitLobbyChatMessage(LobbyChatMessage & 
 	handler.getGameChat().onNewLobbyMessageReceived(pack.playerName, pack.message.toString(&GAME->translator()));
 }
 
-void ApplyOnLobbyScreenNetPackVisitor::visitLobbyGuiAction(LobbyGuiAction & pack)
+void ApplyOnLobbyScreenNetPackVisitor::visitLobbyGuiAction(LobbyGuiAction &)
 {
-	if(!lobby || !handler.isGuest())
-		return;
-
-	switch(pack.action)
-	{
-	case LobbyGuiAction::NO_TAB:
-		lobby->toggleTab(lobby->curTab);
-		break;
-	case LobbyGuiAction::OPEN_OPTIONS:
-		lobby->toggleTab(lobby->tabOpt);
-		break;
-	case LobbyGuiAction::OPEN_SCENARIO_LIST:
-		lobby->toggleTab(lobby->tabSel);
-		break;
-	case LobbyGuiAction::OPEN_RANDOM_MAP_OPTIONS:
-		lobby->toggleTab(lobby->tabRand);
-		break;
-	case LobbyGuiAction::OPEN_TURN_OPTIONS:
-		lobby->toggleTab(lobby->tabTurnOptions);
-		break;
-	case LobbyGuiAction::OPEN_EXTRA_OPTIONS:
-		lobby->toggleTab(lobby->tabExtraOptions);
-		break;
-	case LobbyGuiAction::BATTLE_MODE:
-		lobby->toggleTab(lobby->tabBattleOnlyMode);
-		break;
-	}
+	// Kept for network compatibility with older servers. A lobby participant's
+	// open tab is local UI state and must not follow the host's navigation.
 }
 
 void ApplyOnLobbyHandlerNetPackVisitor::visitLobbyRestartGame(LobbyRestartGame & pack)
