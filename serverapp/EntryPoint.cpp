@@ -238,6 +238,11 @@ static void handleCommandOptions(int argc, const char * argv[], boost::program_o
 	("export-lua-docs", boost::program_options::value<std::string>(), "Export Lua scripting API documentation to specified directory")
 	("port", boost::program_options::value<ui16>(), "port at which server will listen to connections from client")
 	("lobby", "start server in lobby mode in which server connects to a global lobby");
+	opts.add_options()
+	("lobby-allocation-token", boost::program_options::value<std::string>(), "one-time token for a lobby-allocated dedicated server");
+	opts.add_options()
+	("lobby-host", boost::program_options::value<std::string>(), "override global lobby hostname")
+	("lobby-port", boost::program_options::value<ui16>(), "override global lobby port");
 
 	if(argc > 1)
 	{
@@ -314,6 +319,12 @@ int main(int argc, const char * argv[])
 			port = opts["port"].as<uint16_t>();
 
 		CVCMIServer server(port, runByClient);
+		if(opts.count("lobby-allocation-token"))
+			server.lobbyAllocationToken = opts["lobby-allocation-token"].as<std::string>();
+		if(opts.count("lobby-host"))
+			server.lobbyHostOverride = opts["lobby-host"].as<std::string>();
+		if(opts.count("lobby-port"))
+			server.lobbyPortOverride = opts["lobby-port"].as<ui16>();
 		server.prepare(connectToLobby, true);
 		server.run();
 		// CVCMIServer destructor must be called here - before LIBRARY cleanup

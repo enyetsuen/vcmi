@@ -33,6 +33,7 @@ class GlobalLobbyClient final : public INetworkClientListener, boost::noncopyabl
 	std::shared_ptr<INetworkConnection> networkConnection;
 	std::string currentGameRoomUUID;
 	bool accountLoggedIn = false;
+	bool dedicatedServerHosting = false;
 
 	std::weak_ptr<GlobalLobbyLoginWindow> loginWindow;
 	std::weak_ptr<GlobalLobbyWindow> lobbyWindow;
@@ -46,6 +47,7 @@ class GlobalLobbyClient final : public INetworkClientListener, boost::noncopyabl
 	void receiveAccountCreated(const JsonNode & json);
 	void receiveOperationFailed(const JsonNode & json);
 	void receiveClientLoginSuccess(const JsonNode & json);
+	void receiveServerCapabilities(const JsonNode & json);
 	void receiveChatHistory(const JsonNode & json);
 	void receiveChatMessage(const JsonNode & json);
 	void receiveActiveAccounts(const JsonNode & json);
@@ -93,6 +95,7 @@ public:
 	void sendClientRegister(const std::string & accountName);
 	void sendClientLogin();
 	void sendOpenRoom(const std::string & mode, int playerLimit);
+	void sendAllocateDedicatedRoom(const std::string & mode, int playerLimit);
 	void addChannel(const std::string & channel);
 	void closeChannel(const std::string & channel);
 
@@ -102,5 +105,6 @@ public:
 	void connect();
 	bool isConnected() const;
 	bool isLoggedIn() const;
+	bool supportsDedicatedServerHosting() const { return dedicatedServerHosting; }
 	bool isInvitedToRoom(const std::string & gameRoomID);
 };

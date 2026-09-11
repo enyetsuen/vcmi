@@ -18,6 +18,17 @@ class LobbyDatabase;
 
 class LobbyServer final : public INetworkServerListener, INetworkTimerListener
 {
+	struct PendingDedicatedServer
+	{
+		NetworkConnectionWeakPtr accountConnection;
+		std::string accountID;
+		std::string roomType;
+		int playerLimit;
+	};
+
+	std::optional<boost::filesystem::path> dedicatedServerExecutable;
+	uint16_t listeningPort = 0;
+	std::map<std::string, PendingDedicatedServer> pendingDedicatedServers;
 	struct AwaitingProxyState
 	{
 		std::string accountID;
@@ -73,6 +84,7 @@ class LobbyServer final : public INetworkServerListener, INetworkTimerListener
 	void sendOperationFailed(const NetworkConnectionPtr & target, const std::string & reason);
 	void sendServerLoginSuccess(const NetworkConnectionPtr & target, const std::string & accountCookie);
 	void sendClientLoginSuccess(const NetworkConnectionPtr & target, const std::string & accountCookie, const std::string & displayName);
+	void sendServerCapabilities(const NetworkConnectionPtr & target);
 	void sendFullChatHistory(const NetworkConnectionPtr & target, const std::string & channelType, const std::string & channelName, const std::string & channelNameForClient);
 	void sendRecentChatHistory(const NetworkConnectionPtr & target, const std::string & channelType, const std::string & channelName);
 	void sendChatHistory(const NetworkConnectionPtr & target, const std::string & channelType, const std::string & channelName, const std::vector<LobbyChatMessage> & history);
@@ -90,6 +102,7 @@ class LobbyServer final : public INetworkServerListener, INetworkTimerListener
 	void receiveSendChatMessage(const NetworkConnectionPtr & connection, const JsonNode & json);
 	void receiveRequestChatHistory(const NetworkConnectionPtr & connection, const JsonNode & json);
 	void receiveActivateGameRoom(const NetworkConnectionPtr & connection, const JsonNode & json);
+	void receiveAllocateDedicatedGameRoom(const NetworkConnectionPtr & connection, const JsonNode & json);
 	void receiveJoinGameRoom(const NetworkConnectionPtr & connection, const JsonNode & json);
 	void receiveLeaveGameRoom(const NetworkConnectionPtr & connection, const JsonNode & json);
 	void receiveChangeRoomDescription(const NetworkConnectionPtr & connection, const JsonNode & json);
@@ -97,7 +110,7 @@ class LobbyServer final : public INetworkServerListener, INetworkTimerListener
 	void receiveSendInvite(const NetworkConnectionPtr & connection, const JsonNode & json);
 
 public:
-	explicit LobbyServer(const boost::filesystem::path & databasePath);
+	explicit LobbyServer(const boost::filesystem::path & databasePath, std::optional<boost::filesystem::path> dedicatedServerExecutable = std::nullopt);
 	~LobbyServer();
 
 	void start(uint16_t port);

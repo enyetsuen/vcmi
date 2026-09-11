@@ -11,6 +11,7 @@ Exposed to public as:
 - `api.vcmi.eu` - public REST API (behind Cloudflare; nginx proxies HTTPS to lobby's plain-HTTP listener on `127.0.0.1:3032`)
 
 - Start: `cd /home/lobby && nohup sudo -u lobby /usr/games/vcmilobby &` (also done by `setup.sh` and `upgrade.sh`)
+- Dedicated hosting: start with `--enable-dedicated-servers` to allocate one authoritative `vcmiserver` process per room. By default `vcmiserver` must be next to `vcmilobby`; use `--dedicated-server=/absolute/path/to/vcmiserver` to override it. Dedicated match servers connect back through `127.0.0.1` and the lobby listening port, and terminate when their match or lobby connection ends.
 - Stop: `killall vcmilobby` (and only fall back to `killall -9` if the process refuses to exit — `-9` can leave an SQLite WAL behind)
 - Examine database (can be done live): `sqlite3 /home/lobby/.local/share/vcmi/vcmiLobby.db`
 - Examine log file: `tail -n 100 /home/lobby/cache/vcmi/VCMI_Lobby_log.txt`

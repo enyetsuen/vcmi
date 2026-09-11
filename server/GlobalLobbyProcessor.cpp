@@ -27,8 +27,8 @@ GlobalLobbyProcessor::GlobalLobbyProcessor(CVCMIServer & owner)
 
 void GlobalLobbyProcessor::establishNewConnection()
 {
-	std::string hostname = settings["lobby"]["hostname"].String();
-	uint16_t port = settings["lobby"]["port"].Integer();
+	std::string hostname = owner.lobbyHostOverride.empty() ? settings["lobby"]["hostname"].String() : owner.lobbyHostOverride;
+	uint16_t port = owner.lobbyPortOverride.value_or(settings["lobby"]["port"].Integer());
 	owner.getNetworkHandler().connectToRemote(*this, hostname, port);
 }
 
@@ -132,6 +132,8 @@ void GlobalLobbyProcessor::onConnectionEstablished(const std::shared_ptr<INetwor
 		toSend["accountCookie"].String() = getHostAccountCookie();
 		toSend["version"].String() = VCMI_VERSION_STRING;
 		toSend["mods"] = getHostModList();
+		if(!owner.lobbyAllocationToken.empty())
+			toSend["allocationToken"].String() = owner.lobbyAllocationToken;
 
 		sendMessage(connection, toSend);
 	}

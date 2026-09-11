@@ -1,0 +1,11 @@
+{
+	"type" : "object",
+	"$schema" : "http://json-schema.org/draft-06/schema",
+	"title" : "Lobby protocol: serverCapabilities",
+	"required" : [ "type", "dedicatedServerHosting" ],
+	"additionalProperties" : false,
+	"properties" : {
+		"type" : { "type" : "string", "const" : "serverCapabilities" },
+		"dedicatedServerHosting" : { "type" : "boolean" }
+	}
+}

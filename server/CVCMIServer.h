@@ -55,6 +55,11 @@ class CVCMIServer : public LobbyInfo, public INetworkServerListener, public INet
 
 	bool loadSavedGame(CGameHandler & handler, const StartInfo & info);
 public:
+	/// One-time credential used by lobby-managed dedicated match servers.
+	std::string lobbyAllocationToken;
+	std::string lobbyHostOverride;
+	std::optional<uint16_t> lobbyPortOverride;
+
 	uint16_t getPort() const override
 	{
 		return port;

@@ -1,0 +1,13 @@
+{
+	"type" : "object",
+	"$schema" : "http://json-schema.org/draft-06/schema",
+	"title" : "Lobby protocol: allocateDedicatedGameRoom",
+	"description" : "Requests an authoritative match server hosted by the lobby operator",
+	"required" : [ "type", "roomType", "playerLimit" ],
+	"additionalProperties" : false,
+	"properties" : {
+		"type" : { "type" : "string", "const" : "allocateDedicatedGameRoom" },
+		"roomType" : { "type" : "string", "enum" : [ "public", "private" ] },
+		"playerLimit" : { "type" : "number", "minimum" : 1, "maximum" : 8 }
+	}
+}

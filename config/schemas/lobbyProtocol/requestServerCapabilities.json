@@ -1,0 +1,10 @@
+{
+	"type" : "object",
+	"$schema" : "http://json-schema.org/draft-06/schema",
+	"title" : "Lobby protocol: requestServerCapabilities",
+	"required" : [ "type" ],
+	"additionalProperties" : false,
+	"properties" : {
+		"type" : { "type" : "string", "const" : "requestServerCapabilities" }
+	}
+}

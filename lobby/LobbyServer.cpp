@@ -10,6 +10,12 @@
 #include "StdInc.h"
 #include "LobbyServer.h"
 
+#if BOOST_VERSION >= 108600
+#include <boost/process/v1/child.hpp>
+#else
+#include <boost/process/child.hpp>
+#endif
+
 #include "LobbyDatabase.h"
 
 #include "../lib/json/JsonFormatException.h"
@@ -119,6 +125,14 @@ void LobbyServer::sendClientLoginSuccess(const NetworkConnectionPtr & target, co
 	reply["type"].String() = "clientLoginSuccess";
 	reply["accountCookie"].String() = accountCookie;
 	reply["displayName"].String() = displayName;
+	sendMessage(target, reply);
+}
+
+void LobbyServer::sendServerCapabilities(const NetworkConnectionPtr & target)
+{
+	JsonNode reply;
+	reply["type"].String() = "serverCapabilities";
+	reply["dedicatedServerHosting"].Bool() = dedicatedServerExecutable.has_value();
 	sendMessage(target, reply);
 }
 
@@ -306,6 +320,8 @@ void LobbyServer::onDisconnected(const NetworkConnectionPtr & connection, const 
 		activeGameRooms.erase(connection);
 	}
 
+	vstd::erase_if(pendingDedicatedServers, [&connection](const auto & entry) { return entry.second.accountConnection.lock() == connection; });
+
 	vstd::erase_if(awaitingProxies, [&connection](const AwaitingProxyState & p) { return p.roomConnection.lock() == connection || p.accountConnection.lock() == connection; });
 
 	if(activeProxies.count(connection))
@@ -391,8 +407,14 @@ void LobbyServer::onPacketReceived(const NetworkConnectionPtr & connection, cons
 		if(messageType == "requestChatHistory")
 			return receiveRequestChatHistory(connection, json);
 
+		if(messageType == "requestServerCapabilities")
+			return sendServerCapabilities(connection);
+
 		if(messageType == "activateGameRoom")
 			return receiveActivateGameRoom(connection, json);
+
+		if(messageType == "allocateDedicatedGameRoom")
+			return receiveAllocateDedicatedGameRoom(connection, json);
 
 		if(messageType == "joinGameRoom")
 			return receiveJoinGameRoom(connection, json);
@@ -628,8 +650,17 @@ void LobbyServer::receiveServerLogin(const NetworkConnectionPtr & connection, co
 	std::string accountID = json["accountID"].String();
 	std::string accountCookie = json["accountCookie"].String();
 	std::string version = json["version"].String();
+	std::string allocationToken = json["allocationToken"].String();
 
-	auto clientCookieStatus = database->getAccountCookieStatus(accountID, accountCookie);
+	if(!allocationToken.empty() && pendingDedicatedServers.count(allocationToken))
+	{
+		const auto allocation = pendingDedicatedServers.at(allocationToken);
+		accountID = allocation.accountID;
+		accountCookie.clear();
+	}
+
+	const bool validAllocation = !allocationToken.empty() && pendingDedicatedServers.count(allocationToken);
+	auto clientCookieStatus = validAllocation ? LobbyCookieStatus::VALID : database->getAccountCookieStatus(accountID, accountCookie);
 
 	if(clientCookieStatus == LobbyCookieStatus::INVALID)
 	{
@@ -648,6 +679,48 @@ void LobbyServer::receiveServerLogin(const NetworkConnectionPtr & connection, co
 
 		activeGameRooms[connection] = gameRoomID;
 		sendServerLoginSuccess(connection, accountCookie);
+
+		if(validAllocation)
+		{
+			const auto allocation = pendingDedicatedServers.at(allocationToken);
+			pendingDedicatedServers.erase(allocationToken);
+			database->setGameRoomStatus(gameRoomID, allocation.roomType == "public" ? LobbyRoomState::PUBLIC : LobbyRoomState::PRIVATE);
+			database->updateRoomPlayerLimit(gameRoomID, allocation.playerLimit);
+			database->insertPlayerIntoGameRoom(allocation.accountID, gameRoomID);
+			sendAccountJoinsRoom(connection, allocation.accountID);
+			broadcastActiveGameRooms();
+		}
+	}
+}
+
+void LobbyServer::receiveAllocateDedicatedGameRoom(const NetworkConnectionPtr & connection, const JsonNode & json)
+{
+	if(!dedicatedServerExecutable)
+		return sendOperationFailed(connection, "Dedicated server hosting is disabled");
+
+	const std::string accountID = activeAccounts.at(connection);
+	if(database->isPlayerInGameRoom(accountID))
+		return sendOperationFailed(connection, "Player already belongs to a game room");
+	for(const auto & pendingServer : pendingDedicatedServers)
+		if(pendingServer.second.accountID == accountID)
+			return sendOperationFailed(connection, "A dedicated server is already being allocated for this account");
+
+	const std::string token = boost::uuids::to_string(boost::uuids::random_generator()());
+	pendingDedicatedServers[token] = { connection, accountID, json["roomType"].String(), static_cast<int>(json["playerLimit"].Integer()) };
+
+	try
+	{
+#if BOOST_VERSION >= 108600
+		boost::process::v1::child process(*dedicatedServerExecutable, "--port=0", "--lobby", "--lobby-host=127.0.0.1", "--lobby-port=" + std::to_string(listeningPort), "--lobby-allocation-token=" + token);
+#else
+		boost::process::child process(*dedicatedServerExecutable, "--port=0", "--lobby", "--lobby-host=127.0.0.1", "--lobby-port=" + std::to_string(listeningPort), "--lobby-allocation-token=" + token);
+#endif
+		process.detach();
+	}
+	catch(const std::exception & error)
+	{
+		pendingDedicatedServers.erase(token);
+		return sendOperationFailed(connection, "Failed to start dedicated server: " + std::string(error.what()));
 	}
 }
 
@@ -836,8 +909,9 @@ void LobbyServer::receiveSendInvite(const NetworkConnectionPtr & connection, con
 
 LobbyServer::~LobbyServer() = default;
 
-LobbyServer::LobbyServer(const boost::filesystem::path & databasePath)
-	: database(std::make_unique<LobbyDatabase>(databasePath))
+LobbyServer::LobbyServer(const boost::filesystem::path & databasePath, std::optional<boost::filesystem::path> dedicatedServerExecutable)
+	: dedicatedServerExecutable(std::move(dedicatedServerExecutable))
+	, database(std::make_unique<LobbyDatabase>(databasePath))
 	, networkHandler(INetworkHandler::createHandler())
 	, networkServer(networkHandler->createServerTCP(*this))
 {
@@ -855,6 +929,7 @@ NetworkContext & LobbyServer::getNetworkContext()
 
 void LobbyServer::start(uint16_t port)
 {
+	listeningPort = port;
 	networkServer->start(port);
 }
 

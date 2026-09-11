@@ -25,6 +25,16 @@ static const bool HTTP_API_LOCALHOST_ONLY = true;
 
 int main(int argc, const char * argv[])
 {
+	std::optional<boost::filesystem::path> dedicatedServerExecutable;
+	for(int index = 1; index < argc; ++index)
+	{
+		const std::string argument = argv[index];
+		if(argument == "--enable-dedicated-servers")
+			dedicatedServerExecutable = boost::filesystem::absolute(argv[0]).parent_path() / "vcmiserver";
+		else if(argument.starts_with("--dedicated-server="))
+			dedicatedServerExecutable = argument.substr(std::string("--dedicated-server=").size());
+	}
+
 	CResourceHandler::initialize();
 	CResourceHandler::load("config/filesystem.json"); // FIXME: we actually need only config directory for schemas, can be reduced
 
@@ -37,7 +47,17 @@ int main(int argc, const char * argv[])
 	auto databasePath = VCMIDirs::get().userDataPath() / "vcmiLobby.db";
 	logGlobal->info("Opening database %s", databasePath.string());
 
-	LobbyServer server(databasePath);
+	if(dedicatedServerExecutable)
+	{
+		if(!boost::filesystem::exists(*dedicatedServerExecutable))
+		{
+			logGlobal->error("Dedicated server executable does not exist: %s", dedicatedServerExecutable->string());
+			return 1;
+		}
+		logGlobal->info("Dedicated server allocation enabled using %s", dedicatedServerExecutable->string());
+	}
+
+	LobbyServer server(databasePath, dedicatedServerExecutable);
 	logGlobal->info("Starting server on port %d", LISTENING_PORT);
 
 	try

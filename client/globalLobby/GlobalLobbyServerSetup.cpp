@@ -128,16 +128,25 @@ void GlobalLobbyServerSetup::onGameModeChanged(int value)
 
 void GlobalLobbyServerSetup::onCreate()
 {
+	const bool useDedicatedServer = GAME->server().getGlobalLobby().supportsDedicatedServerHosting();
+	const EServerMode serverMode = useDedicatedServer ? EServerMode::LOBBY_GUEST : EServerMode::LOBBY_HOST;
+
 	if(toggleGameMode->getSelected() == 0)
-		GAME->server().resetStateForLobby(EStartMode::NEW_GAME, ESelectionScreen::newGame, EServerMode::LOBBY_HOST, { GAME->server().getGlobalLobby().getAccountDisplayName() });
+		GAME->server().resetStateForLobby(EStartMode::NEW_GAME, ESelectionScreen::newGame, serverMode, { GAME->server().getGlobalLobby().getAccountDisplayName() });
 	else
-		GAME->server().resetStateForLobby(EStartMode::LOAD_GAME, ESelectionScreen::loadGame, EServerMode::LOBBY_HOST, { GAME->server().getGlobalLobby().getAccountDisplayName() });
+		GAME->server().resetStateForLobby(EStartMode::LOAD_GAME, ESelectionScreen::loadGame, serverMode, { GAME->server().getGlobalLobby().getAccountDisplayName() });
 
 	GAME->server().loadMode = ELoadMode::MULTI;
-	GAME->server().startLocalServerAndConnect(true);
-
 	buttonCreate->block(true);
 	buttonClose->block(true);
+	if(useDedicatedServer)
+	{
+		GAME->server().getGlobalLobby().sendAllocateDedicatedRoom(toggleRoomType->getSelected() == 0 ? "public" : "private", togglePlayerLimit->getSelected());
+		close();
+		return;
+	}
+	else
+		GAME->server().startLocalServerAndConnect(true);
 }
 
 void GlobalLobbyServerSetup::onClose()

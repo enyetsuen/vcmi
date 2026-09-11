@@ -28,6 +28,11 @@
 			"type" : "string",
 			"description" : "Security cookie of host account"
 		},
+		"allocationToken" :
+		{
+			"type" : "string",
+			"description" : "One-time credential for a lobby-allocated dedicated server"
+		},
 		"version" :
 		{
 			"type" : "string",

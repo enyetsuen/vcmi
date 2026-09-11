@@ -99,6 +99,8 @@ void GlobalLobbyClient::onPacketReceived(const std::shared_ptr<INetworkConnectio
 
 	if(json["type"].String() == "clientLoginSuccess")
 		return receiveClientLoginSuccess(json);
+	if(json["type"].String() == "serverCapabilities")
+		return receiveServerCapabilities(json);
 
 	if(json["type"].String() == "chatHistory")
 		return receiveChatHistory(json);
@@ -149,6 +151,8 @@ void GlobalLobbyClient::receiveOperationFailed(const JsonNode & json)
 
 	if(loginWindowPtr)
 		loginWindowPtr->onConnectionFailed(json["reason"].String());
+	else
+		CInfoWindow::showInfoDialog(json["reason"].String(), {});
 
 	logGlobal->warn("Operation failed! Reason: %s", json["reason"].String());
 	// TODO: handle errors in lobby menu
@@ -167,6 +171,15 @@ void GlobalLobbyClient::receiveClientLoginSuccess(const JsonNode & json)
 		throw std::runtime_error("lobby connection finished without active login window!");
 
 	loginWindowPtr->onLoginSuccess();
+
+	JsonNode request;
+	request["type"].String() = "requestServerCapabilities";
+	sendMessage(request);
+}
+
+void GlobalLobbyClient::receiveServerCapabilities(const JsonNode & json)
+{
+	dedicatedServerHosting = json["dedicatedServerHosting"].Bool();
 }
 
 void GlobalLobbyClient::receiveChatHistory(const JsonNode & json)
@@ -382,7 +395,10 @@ void GlobalLobbyClient::receiveJoinRoomSuccess(const JsonNode & json)
 {
 	if (json["proxyMode"].Bool())
 	{
-		GAME->server().resetStateForLobby(EStartMode::NEW_GAME, ESelectionScreen::newGame, EServerMode::LOBBY_GUEST, { GAME->server().getGlobalLobby().getAccountDisplayName() });
+		const bool allocatedForThisClient = GAME->server().serverMode == EServerMode::LOBBY_GUEST && GAME->server().si;
+		const EStartMode startMode = allocatedForThisClient ? GAME->server().si->mode : EStartMode::NEW_GAME;
+		const ESelectionScreen screenType = allocatedForThisClient ? GAME->server().screenType : ESelectionScreen::newGame;
+		GAME->server().resetStateForLobby(startMode, screenType, EServerMode::LOBBY_GUEST, { GAME->server().getGlobalLobby().getAccountDisplayName() });
 		GAME->server().loadMode = ELoadMode::MULTI;
 
 		std::string hostname = getServerHost();
@@ -452,6 +468,7 @@ void GlobalLobbyClient::onDisconnected(const std::shared_ptr<INetworkConnection>
 	assert(connection == networkConnection);
 	networkConnection.reset();
 	accountLoggedIn = false;
+	dedicatedServerHosting = false;
 
 	while (!ENGINE->windows().findWindows<GlobalLobbyWindow>().empty())
 	{
@@ -473,6 +490,15 @@ void GlobalLobbyClient::sendOpenRoom(const std::string & mode, int playerLimit)
 	JsonNode toSend;
 	toSend["type"].String() = "activateGameRoom";
 	toSend["hostAccountID"].String() = getAccountID();
+	toSend["roomType"].String() = mode;
+	toSend["playerLimit"].Integer() = playerLimit;
+	sendMessage(toSend);
+}
+
+void GlobalLobbyClient::sendAllocateDedicatedRoom(const std::string & mode, int playerLimit)
+{
+	JsonNode toSend;
+	toSend["type"].String() = "allocateDedicatedGameRoom";
 	toSend["roomType"].String() = mode;
 	toSend["playerLimit"].Integer() = playerLimit;
 	sendMessage(toSend);
