@@ -107,6 +107,10 @@ void BattleHero::onPhaseFinished(const std::function<void()> & callback)
 
 void BattleHero::setPhase(EHeroAnimType newPhase)
 {
+	// A previous spell cast may leave the hero paused at its climax while its
+	// impact animation finishes. Starting a new phase must always resume the
+	// hero, otherwise the corresponding HeroCastAnimation can wait forever.
+	play();
 	nextPhase = newPhase;
 	switchToNextPhase(); //immediately switch to next phase and then restore idling phase
 	nextPhase = EHeroAnimType::HOLDING;
