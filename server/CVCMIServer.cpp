@@ -603,6 +603,8 @@ void CVCMIServer::updateStartInfoOnMapChange(std::shared_ptr<CMapInfo> mapInfo, 
 	if(!mi)
 		return;
 
+	StartInfo::TPlayerInfos previousPlayerInfos = std::move(si->playerInfos);
+	std::map<PlayerColor, PlayerSettings> settingsToRestore;
 	auto namesIt = playerNames.cbegin();
 	si->playerInfos.clear();
 	if(mi->scenarioOptionsOfSave)
@@ -661,6 +663,50 @@ void CVCMIServer::updateStartInfoOnMapChange(std::shared_ptr<CMapInfo> mapInfo, 
 				pset.heroNameTextId = pinfo.mainCustomHeroNameTextId;
 				pset.heroPortrait = pinfo.mainCustomHeroPortrait;
 			}
+
+			const PlayerSettings * previousSettings = nullptr;
+			if(pset.isControlledByHuman())
+			{
+				const PlayerConnectionID connectionId = *pset.connectedPlayerIDs.begin();
+				for(const auto & previous : previousPlayerInfos)
+				{
+					if(vstd::contains(previous.second.connectedPlayerIDs, connectionId))
+					{
+						previousSettings = &previous.second;
+						break;
+					}
+				}
+			}
+			else
+			{
+				auto previous = previousPlayerInfos.find(pset.color);
+				if(previous != previousPlayerInfos.end() && previous->second.isControlledByAI())
+					previousSettings = &previous->second;
+			}
+
+			if(previousSettings)
+			{
+				const bool canRestoreRandomCastle = previousSettings->castle == FactionID::RANDOM && pinfo.isFactionRandom;
+				const bool canRestoreSelectedCastle = vstd::contains(pinfo.allowedFactions, previousSettings->castle);
+				if(pset.castle != FactionID::NONE && (canRestoreRandomCastle || canRestoreSelectedCastle))
+					pset.castle = previousSettings->castle;
+
+				pset.handicap = previousSettings->handicap;
+				settingsToRestore.emplace(pset.color, *previousSettings);
+			}
+		}
+
+		// Restore hero and bonus after all player slots and towns exist. The
+		// regular setters reject choices incompatible with the regenerated map.
+		for(const auto & entry : settingsToRestore)
+		{
+			const PlayerColor color = entry.first;
+			const PlayerSettings & previousSettings = entry.second;
+			const PlayerInfo & pinfo = mi->mapHeader->players[color.getNum()];
+
+			if(!pinfo.hasCustomMainHero())
+				optionSetHero(color, previousSettings.hero);
+			optionSetBonus(color, previousSettings.bonus);
 		}
 
 		if(mi->isRandomMap && mapGenOpts)
