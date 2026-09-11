@@ -230,8 +230,6 @@ InfoCard::InfoCard()
 		disableLabelRedraws();
 	}
 	setChat(false);
-	if (GAME->server().inLobbyRoom())
-		setChat(true); // FIXME: less ugly version?
 }
 
 void InfoCard::disableLabelRedraws()
