@@ -737,7 +737,7 @@ endif()
 
 add_subdirectory(lib)
 
-if (ENABLE_CLIENT OR ENABLE_TEST)
+if (ENABLE_CLIENT OR ENABLE_SERVER OR ENABLE_TEST)
 	add_subdirectory_with_folder("AI" AI)
 endif()
 
