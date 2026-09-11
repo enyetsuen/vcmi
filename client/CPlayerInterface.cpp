@@ -288,7 +288,7 @@ void CPlayerInterface::yourTurn(QueryID queryID)
 		if (info.second.isControlledByHuman())
 			humanPlayersCount++;
 
-	bool hotseatWait = humanPlayersCount > 1;
+	bool hotseatWait = humanPlayersCount > 1 && !cb->getStartInfo()->simturnsInfo.allowRealSimultaneousTurns;
 
 		GAME->setInterfaceInstance(this);
 
