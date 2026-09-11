@@ -131,20 +131,26 @@ CInfoBar::VisibleEnemyTurnInfo::VisibleEnemyTurnInfo(const std::set<PlayerColor>
 	background = std::make_shared<CPicture>(ImagePath::builtin("ADSTATNX"));
 	title = std::make_shared<CLabel>(data_width / 2, 12, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, LIBRARY->generaltexth->translate("vcmi.adventureMap.playersStillMoving"));
 
+	const bool compactLayout = players.size() > 2;
+	const int columns = compactLayout ? 4 : 2;
+	const int bannerSize = compactLayout ? 32 : 58;
 	int playerIndex = 0;
 	for(const PlayerColor player : players)
 	{
-		const int column = playerIndex % 2;
-		const int row = playerIndex / 2;
-		const int xpos = 20 + column * 80;
-		const int ypos = 51 + row * 58;
-		banners.push_back(std::make_shared<CAnimImage>(AnimationPath::builtin("CREST58"), player.getNum(), 0, xpos, ypos));
+		const int column = playerIndex % columns;
+		const int row = playerIndex / columns;
+		const int xpos = compactLayout ? 8 + column * 42 : 20 + column * 80;
+		const int ypos = compactLayout ? 31 + row * 66 : 51;
+		banners.push_back(std::make_shared<CAnimImage>(AnimationPath::builtin("CREST58"), player.getNum(), Rect(xpos, ypos, bannerSize, bannerSize)));
 
 		auto playerInfo = GAME->interface()->cb->getStartInfo()->playerInfos.find(player);
 		const std::string playerName = playerInfo != GAME->interface()->cb->getStartInfo()->playerInfos.end()
 			? playerInfo->second.name
 			: player.toString();
-		playerNames.push_back(std::make_shared<CLabel>(xpos + 29, ypos - 15, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, playerName, 76));
+		const int nameYpos = compactLayout ? ypos + bannerSize + 3 : ypos - 15;
+		const auto font = compactLayout ? FONT_TINY : FONT_SMALL;
+		const int nameWidth = compactLayout ? 40 : 76;
+		playerNames.push_back(std::make_shared<CLabel>(xpos + bannerSize / 2, nameYpos, font, ETextAlignment::CENTER, Colors::WHITE, playerName, nameWidth));
 		++playerIndex;
 	}
 }
