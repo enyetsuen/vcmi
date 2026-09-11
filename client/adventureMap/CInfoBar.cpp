@@ -131,18 +131,21 @@ CInfoBar::VisibleEnemyTurnInfo::VisibleEnemyTurnInfo(const std::set<PlayerColor>
 	background = std::make_shared<CPicture>(ImagePath::builtin("ADSTATNX"));
 	title = std::make_shared<CLabel>(data_width / 2, 12, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, LIBRARY->generaltexth->translate("vcmi.adventureMap.playersStillMoving"));
 
-	int row = 0;
+	int playerIndex = 0;
 	for(const PlayerColor player : players)
 	{
-		const int ypos = 31 + row * 18;
-		flags.push_back(std::make_shared<CAnimImage>(AnimationPath::builtin("ITGFLAGS"), player.getNum(), 0, 10, ypos));
+		const int column = playerIndex % 2;
+		const int row = playerIndex / 2;
+		const int xpos = 20 + column * 80;
+		const int ypos = 51 + row * 58;
+		banners.push_back(std::make_shared<CAnimImage>(AnimationPath::builtin("CREST58"), player.getNum(), 0, xpos, ypos));
 
 		auto playerInfo = GAME->interface()->cb->getStartInfo()->playerInfos.find(player);
 		const std::string playerName = playerInfo != GAME->interface()->cb->getStartInfo()->playerInfos.end()
 			? playerInfo->second.name
 			: player.toString();
-		playerNames.push_back(std::make_shared<CLabel>(35, ypos + 5, FONT_SMALL, ETextAlignment::CENTERLEFT, Colors::WHITE, playerName, data_width - 40));
-		++row;
+		playerNames.push_back(std::make_shared<CLabel>(xpos + 29, ypos - 15, FONT_SMALL, ETextAlignment::CENTER, Colors::WHITE, playerName, 76));
+		++playerIndex;
 	}
 }
 

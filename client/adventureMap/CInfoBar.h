@@ -95,7 +95,7 @@ private:
 	class VisibleEnemyTurnInfo : public CVisibleInfo
 	{
 		std::shared_ptr<CLabel> title;
-		std::vector<std::shared_ptr<CAnimImage>> flags;
+		std::vector<std::shared_ptr<CAnimImage>> banners;
 		std::vector<std::shared_ptr<CLabel>> playerNames;
 	public:
 		VisibleEnemyTurnInfo(const std::set<PlayerColor> & players);
