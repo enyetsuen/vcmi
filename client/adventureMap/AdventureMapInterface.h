@@ -147,6 +147,9 @@ public:
 	/// Updates the local ready checkbox during real-time simultaneous turns
 	void onPlayerTurnReady(bool ready);
 
+	/// Updates a remote player's ready state in the waiting-for-players infobar
+	void onPlayerTurnReady(PlayerColor playerID, bool ready);
+
 	/// Called by PlayerInterface when local human player starts his turn
 	void onPlayerTurnStarted(PlayerColor playerID);
 

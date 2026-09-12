@@ -293,7 +293,7 @@
 		},
 		{
 			"name": "buttonSimturnsAI",
-			"position": {"x": 70, "y": 535},
+			"position": {"x": 70, "y": 520},
 			"help" : "vcmi.optionsTab.simturnsAI",
 			"type": "toggleButton",
 			"image": "lobby/checkbox",
@@ -306,11 +306,11 @@
 			"alignment": "left",
 			"color": "yellow",
 			"text": "vcmi.optionsTab.simturnsAI.hover",
-			"position": {"x": 110, "y": 538}
+			"position": {"x": 110, "y": 523}
 		},
 		{
 			"name": "buttonRealSimturns",
-			"position": {"x": 70, "y": 570},
+			"position": {"x": 70, "y": 550},
 			"help" : "vcmi.optionsTab.realSimturns",
 			"type": "toggleButton",
 			"image": "lobby/checkbox",
@@ -323,7 +323,7 @@
 			"alignment": "left",
 			"color": "yellow",
 			"text": "vcmi.optionsTab.realSimturns.hover",
-			"position": {"x": 110, "y": 573}
+			"position": {"x": 110, "y": 553}
 		}
 	],
 	

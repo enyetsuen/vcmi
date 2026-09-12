@@ -248,6 +248,8 @@ void CPlayerInterface::playerTurnReady(PlayerColor player, bool ready)
 		turnReady = ready;
 		adventureInt->onPlayerTurnReady(ready);
 	}
+	else if(GAME->interface() == this)
+		adventureInt->onPlayerTurnReady(player, ready);
 }
 
 void CPlayerInterface::playerStartsTurn(PlayerColor player)

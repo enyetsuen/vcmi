@@ -473,6 +473,11 @@ void CMapGenOptions::setMapTemplate(const std::string & name)
 		setMapTemplate(LIBRARY->tplh->getTemplate(name));
 }
 
+void CMapGenOptions::restoreMapTemplate(const std::string & name)
+{
+	mapTemplate = name.empty() ? nullptr : LIBRARY->tplh->getTemplate(name);
+}
+
 void CMapGenOptions::setRoadEnabled(const RoadId & roadType, bool enable)
 {
 	if (enable)

@@ -560,6 +560,18 @@ void CInfoBar::enemyTurnEnded(PlayerColor color)
 		showEnemyTurns();
 }
 
+void CInfoBar::playerTurnReady(PlayerColor color, bool ready)
+{
+	OBJECT_CONSTRUCTION;
+	if(ready)
+		playersMakingTurn.erase(color);
+	else
+		playersMakingTurn.insert(color);
+
+	if(state == EState::AITURN)
+		showEnemyTurns();
+}
+
 void CInfoBar::showEnemyTurns()
 {
 	OBJECT_CONSTRUCTION;

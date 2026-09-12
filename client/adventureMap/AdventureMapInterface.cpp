@@ -413,6 +413,11 @@ void AdventureMapInterface::onPlayerTurnReady(bool ready)
 	widget->getInfoBar()->setPlayerReady(ready);
 }
 
+void AdventureMapInterface::onPlayerTurnReady(PlayerColor playerID, bool ready)
+{
+	widget->getInfoBar()->playerTurnReady(playerID, ready);
+}
+
 EAdventureState AdventureMapInterface::getState() const
 {
 	return shortcuts->getState();

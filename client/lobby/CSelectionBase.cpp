@@ -130,10 +130,8 @@ void CSelectionBase::keyPressed(EShortcut key)
 
 void CSelectionBase::toggleTab(std::shared_ptr<CIntObject> tab)
 {
-	if(curTab && curTab->isActive())
-	{
+	if(curTab)
 		curTab->disable();
-	}
 
 	if(curTab != tab)
 	{

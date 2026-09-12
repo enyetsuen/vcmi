@@ -62,11 +62,6 @@ CLobbyScreen::CLobbyScreen(ESelectionScreen screenType, bool hideScreen)
 		});
 
 		buttonOptions = std::make_shared<CButton>(Point(411, 510), AnimationPath::builtin("GSPBUTT.DEF"), LIBRARY->generaltexth->zelp[46], std::bind(&CLobbyScreen::toggleTab, this, tabOpt), EShortcut::LOBBY_ADDITIONAL_OPTIONS);
-		if(tabTurnOptions)
-		{
-			buttonTurnOptions = std::make_shared<CButton>(Point(619, 485), AnimationPath::builtin("GSPButton2Arrow"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.optionsTab.turnOptions.help")), std::bind(&CLobbyScreen::toggleTab, this, tabTurnOptions), EShortcut::LOBBY_TURN_OPTIONS);
-			buttonTurnOptions->setTextOverlay(LIBRARY->generaltexth->translate("vcmi.optionsTab.turnOptions.hover"), FONT_SMALL, Colors::WHITE);
-		}
 		if(screenType == ESelectionScreen::newGame && !ENGINE->isDemoData())
 		{
 			buttonBattleMode = std::make_shared<CButton>(Point(619, 80), AnimationPath::builtin("GSPButton2Arrow"), CButton::tooltip("", LIBRARY->generaltexth->translate("vcmi.lobby.battleOnlyMode.help")), [this](){
@@ -357,9 +352,6 @@ void CLobbyScreen::toggleMode(bool host)
 	if (buttonExtraOptions)
 		buttonExtraOptions->setTextOverlay(LIBRARY->generaltexth->translate("vcmi.optionsTab.extraOptions.hover"), FONT_SMALL, buttonColor);
 
-	if(buttonTurnOptions)
-		buttonTurnOptions->setTextOverlay(LIBRARY->generaltexth->translate("vcmi.optionsTab.turnOptions.hover"), FONT_SMALL, buttonColor);
-
 	if(buttonRMG)
 	{
 		buttonRMG->setTextOverlay("  " + LIBRARY->generaltexth->allTexts[740], FONT_SMALL, buttonColor);
@@ -367,8 +359,6 @@ void CLobbyScreen::toggleMode(bool host)
 	}
 	buttonSelect->block(!host);
 	buttonOptions->block(!host);
-	if(buttonTurnOptions)
-		buttonTurnOptions->block(!host);
 
 	if (buttonBattleMode)
 		buttonBattleMode->block(!host);

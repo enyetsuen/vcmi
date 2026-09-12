@@ -198,6 +198,7 @@ public:
 	/// print enemy turn progress
 	void enemyTurnStarted(PlayerColor color);
 	void enemyTurnEnded(PlayerColor color);
+	void playerTurnReady(PlayerColor color, bool ready);
 	void showEnemyTurns();
 	void setPlayerReady(bool ready);
 

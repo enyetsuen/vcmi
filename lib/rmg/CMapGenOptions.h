@@ -180,6 +180,7 @@ private:
 	void updateCompOnlyPlayers();
 	void updatePlayers();
 	const CRmgTemplate * getPossibleTemplate(vstd::RNG & rand) const;
+	void restoreMapTemplate(const std::string & name);
 	/// Pads/truncates levelMapLayers to match the current level count, preserving already configured layers.
 	void syncLevelMapLayersSize();
 
@@ -223,7 +224,10 @@ public:
 		h & templateName;
 		if(!h.saving)
 		{
-			setMapTemplate(templateName);
+			// The serialized object already contains a complete, validated set of
+			// options. Re-running setMapTemplate here may adapt player counts and
+			// turn explicit values back into RANDOM_SIZE during a lobby refresh.
+			restoreMapTemplate(templateName);
 		}
 
 		h & enabledRoads;
