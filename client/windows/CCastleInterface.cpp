@@ -2446,7 +2446,7 @@ void CMageGuildScreen::Scroll::clickPressed(const Point & cursorPosition)
 
 		std::vector<std::shared_ptr<CComponent>> resComps;
 
-		int index = town->spellsAtLevel(level, false);
+		int index = town->spellResearchCandidateIndex(level);
 		if (index >= town->spells[level].size())
 		{
 			GAME->interface()->showInfoDialog(LIBRARY->generaltexth->translate("vcmi.spellResearch.noMoreSpells"));

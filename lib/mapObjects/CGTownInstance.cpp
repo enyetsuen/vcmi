@@ -294,6 +294,11 @@ int CGTownInstance::spellsAtLevel(int level, bool checkGuild) const
 	return ret;
 }
 
+int CGTownInstance::spellResearchCandidateIndex(int levelIndex) const
+{
+	return spellsAtLevel(levelIndex + 1, false);
+}
+
 bool CGTownInstance::needsLastStack() const
 {
 	return getGarrisonHero() != nullptr;

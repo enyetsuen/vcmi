@@ -2562,10 +2562,11 @@ bool CGameHandler::spellResearch(ObjectInstanceID tid, SpellID spellAtSlot, bool
 
 	giveResources(t->getOwner(), -cost);
 
+	const int candidateIndex = t->spellResearchCandidateIndex(level);
 	if(accepted)
-		std::swap(spells.at(t->spellsAtLevel(level, false)), spells.at(vstd::find_pos(spells, spellAtSlot)));
+		std::swap(spells.at(candidateIndex), spells.at(vstd::find_pos(spells, spellAtSlot)));
 
-	auto it = spells.begin() + t->spellsAtLevel(level, false);
+	auto it = spells.begin() + candidateIndex;
 	std::rotate(it, it + 1, spells.end()); // move to end
 	setResearchedSpells(t, level, spells, accepted);
 

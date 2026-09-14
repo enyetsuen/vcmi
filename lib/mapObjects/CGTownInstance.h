@@ -182,6 +182,7 @@ public:
 	std::vector<CreatureID> providedCreatures() const override;
 
 	int spellsAtLevel(int level, bool checkGuild) const; //levels are counted from 1 (1 - 5)
+	int spellResearchCandidateIndex(int levelIndex) const; //levelIndex is zero-based index into spells
 	bool armedGarrison() const; //true if town has creatures in garrison or garrisoned hero
 	int getTownLevel() const;
 
