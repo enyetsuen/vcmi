@@ -543,6 +543,8 @@ void CVCMIServer::clientDisconnected(std::shared_ptr<GameConnection> connection)
 {
 	assert(vstd::contains(activeConnections, connection));
 	logGlobal->trace("Received disconnection request");
+	if(lobbyProcessor)
+		lobbyProcessor->onGameClientDisconnected(connection->getConnection());
 	vstd::erase(activeConnections, connection);
 
 	std::vector<PlayerConnectionID> disconnectedPlayerIds;

@@ -41,26 +41,28 @@ void GlobalLobbyProcessor::onDisconnected(const std::shared_ptr<INetworkConnecti
 	}
 	else
 	{
-		for (auto const & proxy : proxyConnections)
+		if(std::ranges::any_of(proxyConnections, [&connection](const auto & proxy) { return proxy.second == connection; }))
 		{
-			if (proxy.second != connection)
-				continue;
-
-			if (owner.getState() == EServerState::LOBBY)
-			{
-				JsonNode message;
-				message["type"].String() = "leaveGameRoom";
-				message["accountID"].String() = proxy.first;
-
-				sendMessage(controlConnection, message);
-			}
-
-			proxyConnections.erase(proxy.first);
-
-			// player disconnected
+			onGameClientDisconnected(connection);
 			owner.onDisconnected(connection, errorMessage);
-			return;
 		}
+	}
+}
+
+void GlobalLobbyProcessor::onGameClientDisconnected(const NetworkConnectionPtr & connection)
+{
+	for(auto const & proxy : proxyConnections)
+	{
+		if(proxy.second != connection)
+			continue;
+
+		JsonNode message;
+		message["type"].String() = "leaveGameRoom";
+		message["accountID"].String() = proxy.first;
+		sendMessage(controlConnection, message);
+
+		proxyConnections.erase(proxy.first);
+		return;
 	}
 }
 

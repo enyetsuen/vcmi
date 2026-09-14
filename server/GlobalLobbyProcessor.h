@@ -39,6 +39,7 @@ class GlobalLobbyProcessor : public INetworkClientListener
 	const std::string & getHostAccountCookie() const;
 	const std::string & getHostAccountDisplayName() const;
 public:
+	void onGameClientDisconnected(const NetworkConnectionPtr & connection);
 	void sendChangeRoomDescription(const std::string & description);
 	void sendGameStarted();
 
