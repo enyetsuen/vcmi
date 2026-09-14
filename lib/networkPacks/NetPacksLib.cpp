@@ -741,6 +741,11 @@ void PlayerMessageClient::visitTyped(ICPackVisitor & visitor)
 	visitor.visitPlayerMessageClient(*this);
 }
 
+void SaveGameFile::visitTyped(ICPackVisitor & visitor)
+{
+	visitor.visitSaveGameFile(*this);
+}
+
 void CenterView::visitTyped(ICPackVisitor & visitor)
 {
 	visitor.visitCenterView(*this);

@@ -121,6 +121,11 @@ void ReplayLog::endTurn(const PlayerColor & player)
 
 void ReplayLog::recordPack(CPackForClient & pack, CGameState & gs)
 {
+	// File delivery is a client-side side effect, not a game-state change. Recording it would
+	// also embed a complete save inside the next save and repeat the write during replay.
+	if(dynamic_cast<const SaveGameFile *>(&pack))
+		return;
+
 	// every game day opens a new chapter, anchored by the state that day started from.
 	// NewTurn is recorded before it is applied, so the new day is only known from the pack itself
 	const auto * newTurn = dynamic_cast<const NewTurn *>(&pack);

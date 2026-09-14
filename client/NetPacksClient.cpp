@@ -986,6 +986,40 @@ void ApplyClientNetPackVisitor::visitPlayerMessageClient(PlayerMessageClient & p
 	GAME->server().getGameChat().onNewGameMessageReceived(pack.player, pack.text);
 }
 
+void ApplyClientNetPackVisitor::visitSaveGameFile(SaveGameFile & pack)
+{
+	std::string filenameWithoutPath = pack.filename;
+	const auto separatorPosition = filenameWithoutPath.find_last_of("/\\");
+	if(separatorPosition != std::string::npos)
+		filenameWithoutPath = filenameWithoutPath.substr(separatorPosition + 1);
+
+	MetaString message;
+	try
+	{
+		ResourcePath savePath(pack.filename, EResType::SAVEGAME);
+		const auto saveFilename = savePath.getOriginalName() + ".vsgm1";
+		auto filesystem = CResourceHandler::get("local");
+		if(!filesystem->createResource(saveFilename))
+			throw std::runtime_error("Failed to create local save resource");
+
+		const auto outputPath = *filesystem->getResourceName(savePath);
+		std::ofstream output(outputPath.c_str(), std::ios::out | std::ios::binary);
+		output.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+		output.write(reinterpret_cast<const char *>(pack.data.data()), pack.data.size());
+		output.close();
+		logGlobal->info("Saved game received from server to %s", outputPath.string());
+		message = MetaString::createFromTextID("core.genrltxt.350");
+	}
+	catch(const std::exception & error)
+	{
+		logGlobal->error("Failed to save game received from server: %s", error.what());
+		message = MetaString::createFromTextID("core.genrltxt.9");
+	}
+
+	message.replaceRawString(filenameWithoutPath);
+	callInterfaceIfPresent(cl, pack.player, &CGameInterface::showInfoDialog, EInfoWindowMode::MODAL, message.toString(&GAME->translator()), std::vector<Component>{}, 0);
+}
+
 void ApplyClientNetPackVisitor::visitAdvmapSpellCast(AdvmapSpellCast & pack)
 {
 	callAllInterfaces(cl, &CGameInterface::invalidatePaths);

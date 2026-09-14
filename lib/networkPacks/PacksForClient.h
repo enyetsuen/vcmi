@@ -1578,6 +1578,22 @@ struct DLL_LINKAGE PlayerMessageClient : public CPackForClient
 	}
 };
 
+struct DLL_LINKAGE SaveGameFile : public CPackForClient
+{
+	PlayerColor player;
+	std::string filename;
+	std::vector<std::byte> data;
+
+	void visitTyped(ICPackVisitor & visitor) override;
+
+	template <typename Handler> void serialize(Handler & h)
+	{
+		h & player;
+		h & filename;
+		h & data;
+	}
+};
+
 struct DLL_LINKAGE CenterView : public CPackForClient
 {
 	PlayerColor player;

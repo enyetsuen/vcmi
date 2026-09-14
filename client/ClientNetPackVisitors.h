@@ -96,6 +96,7 @@ public:
 	void visitPlayerStartsTurn(PlayerStartsTurn & pack) override;
 	void visitTurnTimeUpdate(TurnTimeUpdate & pack) override;
 	void visitPlayerMessageClient(PlayerMessageClient & pack) override;
+	void visitSaveGameFile(SaveGameFile & pack) override;
 	void visitAdvmapSpellCast(AdvmapSpellCast & pack) override;
 	void visitShowWorldViewEx(ShowWorldViewEx & pack) override;	
 	void visitOpenWindow(OpenWindow & pack) override;

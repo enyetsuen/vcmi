@@ -31,7 +31,7 @@
 
 void ApplyGhNetPackVisitor::visitSaveGame(SaveGame & pack)
 {
-	gh.save(pack.fname, pack.notifySuccess ? pack.player : PlayerColor::CANNOT_DETERMINE, pack.autosaveCountLimit);
+	gh.save(pack.fname, pack.notifySuccess ? pack.player : PlayerColor::CANNOT_DETERMINE, pack.autosaveCountLimit, pack.notifySuccess ? connection : GameConnectionID::INVALID);
 	logGlobal->info("Game has been saved as %s", pack.fname);
 	result = true;
 }

@@ -1800,12 +1800,10 @@ void pruneAutosaves(const ResourcePath & currentAutosave, int countLimit)
 
 }
 
-void CGameHandler::save(const std::string & filename, PlayerColor playerToNotifyOnSuccess, int autosaveCountLimit)
+void CGameHandler::save(const std::string & filename, PlayerColor playerToNotifyOnSuccess, int autosaveCountLimit, GameConnectionID connectionToReceive)
 {
 	logGlobal->info("Saving to %s", filename);
 	ResourcePath savePath(filename, EResType::SAVEGAME);
-	const auto savefname = savePath.getOriginalName() + ".vsgm1";
-	CResourceHandler::get("local")->createResource(savefname);
 
 	std::string filenameWithoutPath;
 	auto pos = filename.find_last_of("/\\");
@@ -1822,16 +1820,30 @@ void CGameHandler::save(const std::string & filename, PlayerColor playerToNotify
 		gameState().saveGame(save);
 		logGlobal->info("Saving server state");
 		save.save(*this);
-		const auto saveFile = *CResourceHandler::get("local")->getResourceName(savePath);
-		save.write(saveFile);
 
-		pruneAutosaves(savePath, autosaveCountLimit);
-
-		if(playerToNotifyOnSuccess.isValidPlayer())
+		if(connectionToReceive != GameConnectionID::INVALID)
 		{
-			iw.text = MetaString::createFromTextID("core.genrltxt.350");
-			iw.text.replaceRawString(filenameWithoutPath);
-			sendAndApply(iw);
+			SaveGameFile saveGameFile;
+			saveGameFile.player = playerToNotifyOnSuccess;
+			saveGameFile.filename = filename;
+			saveGameFile.data = save.currentContent();
+			gameServer().sendPack(saveGameFile, connectionToReceive);
+		}
+		else
+		{
+			const auto saveFilename = savePath.getOriginalName() + ".vsgm1";
+			CResourceHandler::get("local")->createResource(saveFilename);
+			const auto saveFile = *CResourceHandler::get("local")->getResourceName(savePath);
+			save.write(saveFile);
+
+			pruneAutosaves(savePath, autosaveCountLimit);
+
+			if(playerToNotifyOnSuccess.isValidPlayer())
+			{
+				iw.text = MetaString::createFromTextID("core.genrltxt.350");
+				iw.text.replaceRawString(filenameWithoutPath);
+				sendAndApply(iw);
+			}
 		}
 		logGlobal->info("Game has been successfully saved!");
 	}
